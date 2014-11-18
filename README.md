@@ -1,5 +1,5 @@
-svparse
-=======
+SystemVerilog
+=============
 
 [![Build Status](https://travis-ci.org/misfornoyd/systemverilog.png?branch=master)](https://travis-ci.org/misfornoyd/systemverilog)
 
