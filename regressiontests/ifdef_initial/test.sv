@@ -1,0 +1,5 @@
+`ifdef FOO
+
+`BAR
+
+`endif

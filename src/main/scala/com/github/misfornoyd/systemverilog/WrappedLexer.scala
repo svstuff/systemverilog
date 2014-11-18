@@ -1,0 +1,42 @@
+package com.github.misfornoyd.systemverilog
+
+import org.antlr.v4.runtime._
+import java.util.concurrent._
+
+sealed class WrappedLexer(tokens : BlockingQueue[SVToken]) extends TokenSource {
+
+  var factory = CommonTokenFactory.DEFAULT
+
+  override def nextToken() : Token = {
+    try {
+      tokens.take()
+    } catch {
+      case e : InterruptedException => throw new CancellationException()
+    }
+  }
+
+  override def setTokenFactory(factory : TokenFactory){
+    this.factory = factory
+  }
+
+  override def getTokenFactory() : TokenFactory = {
+    factory
+  }
+
+  override def getSourceName() : String = {
+    "yo"
+  }
+
+  override def getInputStream() : CharStream = {
+    null
+  }
+
+  override def getCharPositionInLine() : Int = {
+    0
+  }
+
+  override def getLine() : Int = {
+    0
+  }
+
+}

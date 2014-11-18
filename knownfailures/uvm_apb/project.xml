@@ -1,0 +1,18 @@
+<project>
+	<define><name>USE_MACROS</name><value></value></define>
+	<define><name>VCS</name><value></value></define>
+	<define><name>UVM_EMPTY_MACROS</name><value></value></define>
+	<incdir>../../uvm-1.1d/src</incdir>
+	<incdir>../../uvm-1.1d/examples/integrated/apb</incdir>
+	<incdir>../../uvm-1.1d/examples/integrated/codec/vip</incdir>
+	<incdir>../../uvm-1.1d/examples/integrated/codec</incdir>
+	<source>../../uvm-1.1d/examples/integrated/apb/apb.sv</source>
+	<source>../../uvm-1.1d/examples/integrated/apb/apb_agent.sv</source>
+	<source>../../uvm-1.1d/examples/integrated/apb/apb_config.sv</source>
+	<source>../../uvm-1.1d/examples/integrated/apb/apb_if.sv</source>
+	<source>../../uvm-1.1d/examples/integrated/apb/apb_master.sv</source>
+	<source>../../uvm-1.1d/examples/integrated/apb/apb_monitor.sv</source>
+	<source>../../uvm-1.1d/examples/integrated/apb/apb_rw.sv</source>
+	<source>../../uvm-1.1d/examples/integrated/apb/apb_sequencer.sv</source>
+	<debug>print_tokens</debug>
+</project>

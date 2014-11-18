@@ -1,0 +1,8 @@
+ID(test.sv,1,1,single_line_comment)
+ID(test.sv,2,1,end_of_single_line_comment)
+ID(test.sv,4,1,simple_comment)
+ID(test.sv,4,30,end_of_simple_comment)
+ID(test.sv,6,1,simple_comment_2)
+ID(test.sv,6,36,end_of_simple_comment_2)
+ID(test.sv,8,1,multi_line_comment)
+ID(test.sv,10,19,end_of_multi_line_comment)

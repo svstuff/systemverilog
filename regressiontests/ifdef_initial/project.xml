@@ -1,0 +1,7 @@
+<project>
+	<define><name>FOO</name><value></value></define>
+	<define><name>BAR</name><value>1</value></define>
+	<source>test.sv</source>
+	<debug>print_tokens</debug>
+	<debug>lexer_only</debug>
+</project>

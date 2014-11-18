@@ -1,0 +1,5 @@
+<project>
+	<source>test.sv</source>
+	<debug>print_tokens</debug>
+	<debug>trace</debug>
+</project>

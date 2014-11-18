@@ -1,0 +1,11 @@
+<project>
+	<define><name>USE_MACROS</name><value></value></define>
+	<define><name>VCS</name><value></value></define>
+	<incdir>../../uvm-1.1d/src</incdir>
+	<incdir>../../uvm-1.1d/examples/integrated/apb</incdir>
+	<incdir>../../uvm-1.1d/examples/integrated/codec</incdir>
+	<incdir>../../uvm-1.1d/examples/integrated/codec/vip</incdir>
+	<source>../../uvm-1.1d/examples/integrated/codec/tb_top.sv</source>
+	<source>../../uvm-1.1d/examples/integrated/codec/test.sv</source>
+	<debug>print_tokens</debug>
+</project>

@@ -1,0 +1,9 @@
+<project>
+	<define><name>USE_MACROS</name><value></value></define>
+	<define><name>VCS</name><value></value></define>
+	<incdir>../../uvm-1.1d/src</incdir>
+	<incdir>../../uvm-1.1d/examples/simple/basic_examples/module</incdir>
+	<source>../../uvm-1.1d/examples/simple/basic_examples/module/test.sv</source>
+	<debug>print_tokens</debug>
+	<debug>lexer_only</debug>
+</project>

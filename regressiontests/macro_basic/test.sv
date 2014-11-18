@@ -1,0 +1,2 @@
+`define YO veryverylongnamesothatsubsequenttokenswouldgetthewrongcolumn
+`YO 1 `YO

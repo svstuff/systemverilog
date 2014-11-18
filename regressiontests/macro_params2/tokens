@@ -1,0 +1,3 @@
+ID(YO,1,17,foo)
+ADD(YO,1,21,+)
+ID(YO,1,23,bar)

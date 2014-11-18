@@ -1,0 +1,14 @@
+`define NONEXISTING_DEFINE_1	
+
+`ifndef NONEXISTING_DEFINE_1
+`define NONEXISTING_DEFINE_1
+
+`ifndef NONEXISTING_DEFINE_2
+
+foo
+
+`endif // `ifndef NONEXISTING_DEFINE_2
+
+`endif // NONEXISTING_DEFINE_1
+
+bar

@@ -1,0 +1,7 @@
+SYSTEM_ID(FOO,1,13,display)
+LPAREN(FOO,1,21,()
+LIT_STRING(FOO,1,22,yo)
+RPAREN(FOO,1,26,))
+LPAREN(test.sv,3,5,()
+ID(test.sv,3,6,foo)
+RPAREN(test.sv,3,9,))

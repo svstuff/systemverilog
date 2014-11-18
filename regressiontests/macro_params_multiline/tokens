@@ -1,0 +1,4 @@
+LIT_STRING(FOO,2,1,This is \"line\" ...)
+LIT_NUM(FOO,2,24,2)
+LIT_STRING(FOO,3,1,and this \"is\" line ...)
+LIT_NUM(FOO,3,28,3)

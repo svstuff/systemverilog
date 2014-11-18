@@ -1,0 +1,3 @@
+LIT_STRING(D,1,14,foo a bar)
+ADD(D,1,25,+)
+LIT_NUM(D,1,26,42)

@@ -1,0 +1,5 @@
+ID(FOO,1,18,foo)
+ADD(FOO,1,22,+)
+LSQUARE(BAR,2,16,[)
+ID(BAR,2,17,bar)
+RSQUARE(BAR,2,20,])

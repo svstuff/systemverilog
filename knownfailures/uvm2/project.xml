@@ -1,0 +1,8 @@
+<project>
+	<define><name>USE_MACROS</name><value></value></define>
+	<define><name>VCS</name><value></value></define>
+	<incdir>../../uvm-1.1d/src</incdir>
+	<incdir>../../uvm-1.1d/examples/integrated/ubus/sv</incdir>
+	<source>../../uvm-1.1d/examples/integrated/ubus/examples/ubus_tb_top.sv</source>
+	<debug>print_tokens</debug>
+</project>

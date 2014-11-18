@@ -1,0 +1,8 @@
+<project>
+	<define><name>USE_MACROS</name><value></value></define>
+	<define><name>VCS</name><value></value></define>
+	<incdir>../../uvm-1.1d/src</incdir>
+	<incdir>../../uvm-1.1d/examples/simple/hello_world</incdir>
+	<source>../../uvm-1.1d/examples/simple/hello_world/hello_world.sv</source>
+	<debug>print_tokens</debug>
+</project>
