@@ -2107,7 +2107,7 @@ identifier_list
 	;
 
 escaped_identifier : simple_identifier ; // TODO
-simple_identifier : ID | KW_STD | KW_NEW ;
+simple_identifier : ID | KW_STD | KW_NEW | KW_OPTION ;
 
 arrayed_identifier : simple_arrayed_identifier | escaped_arrayed_identifier ;
 block_identifier : identifier ;
