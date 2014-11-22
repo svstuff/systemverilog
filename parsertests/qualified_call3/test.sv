@@ -1,3 +1,3 @@
 function int clazz::func(string name);
-   if ( !this.randomize(this.foo) ) bar();
+   this.randomize(this.foo);
 endfunction

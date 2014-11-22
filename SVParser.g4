@@ -1246,11 +1246,18 @@ array_manipulation_call
 	  (KW_WITH LPAREN expression RPAREN)?
 	;
 
+// TODO: scope_randomize disallows KW_NULL and identifier_list after KW_WITH:
+// scope_randomize ::= [ std:: ] randomize ( [ variable_identifier_list ] ) [ with constraint_block ]
 randomize_call
 	: (KW_STD COLON2)? KW_RANDOMIZE attribute_instances
-	  (LPAREN (variable_identifier_list | KW_NULL)? RPAREN)?
+	  (LPAREN (randomize_param_list | KW_NULL)? RPAREN)?
 	  (KW_WITH (LPAREN identifier_list? RPAREN)? constraint_block)?
 	  ;
+
+// NOTE: the LRM seems to be wrong on the variable_identifier_list, since this disallows e.g. "this.varname".
+randomize_param_list
+	: expression (COMMA expression)*
+	;
 
 array_method_name
 	: method_identifier | KW_UNIQUE | KW_AND | KW_OR | KW_XOR
