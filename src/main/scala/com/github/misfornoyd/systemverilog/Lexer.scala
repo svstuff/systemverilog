@@ -172,7 +172,7 @@ sealed class Lexer(
 
     // Scan the substituted text in a new context
     val prevContext = currentContext
-    currentContext = new MacroContext(prevContext, line, col, d.id)
+    currentContext = new MacroContext(prevContext, line, col, d, text)
     val macroSource = new SimpleSource(d.line, d.col, text)
     try {
       scanSource(macroSource)
@@ -843,26 +843,27 @@ sealed abstract class Context {
   val parent : Context
   val line : Int  // position in _parent_
   val col : Int   // position in _parent_
-  val id : String
 
-  override def toString() : String = {
-    id
-  }
-
-  def getShortId() : String = id
-
+  def getShortId() : String
   def getFileName() : String
+  def where() : String
+  def what() : String
 }
 
-case class MacroContext ( parent : Context, line : Int, col : Int, id : String ) extends Context {
-    def getFileName() : String = parent.getFileName
+case class MacroContext ( parent : Context, line : Int, col : Int, d: Define, expanded: String ) extends Context {
+  override def toString() : String = d.id
+  def getShortId() : String = d.id
+  def getFileName() : String = parent.getFileName
+  def where() : String = "Macro " + d.id
+  def what() : String = "Macro " + d.id + " expanded to:\n" + expanded + "\n"
 }
 
 case class FileContext ( parent : Context, line : Int, col : Int, id : String ) extends Context {
-  override def getShortId() : String = {
-    new File(id).getName()
-  }
+  override def toString() : String =  getFileName
+  override def getShortId() : String = new File(id).getName()
   def getFileName() : String = id
+  def where() : String = getFileName
+  def what() : String = ""
 }
 
 sealed class LexerError(val msg: String, val ctx: Context, val line: Int, val col: Int) extends RuntimeException(msg) {

@@ -186,6 +186,7 @@ object Driver {
             val sb = new StringBuilder
             sb ++= "Lexical error: %s\n".format(e.msg)
             printContextChain(sb, e.ctx, e.line, e.col)
+            sb ++= e.ctx.what()
             logger.error(sb.toString)
           }
           case e: Throwable => {
@@ -215,7 +216,7 @@ object Driver {
   }
 
   def printContextChain(sb:StringBuilder, ctx:Context, line:Int, col:Int){
-    sb ++= "In: %s(%d,%d)\n".format(ctx.getFileName(), line, col)
+    sb ++= "In: %s(%d,%d)\n".format(ctx.where(), line, col)
     var parent = ctx.parent
     var child = ctx
     while ( parent != null ){
