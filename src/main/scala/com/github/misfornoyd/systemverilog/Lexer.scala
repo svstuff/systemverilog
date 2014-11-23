@@ -578,6 +578,22 @@ sealed class Lexer(
         toktext match {
           case "unit" => produce( LexerTokens.DOLLAR_UNIT, line, col )
           case "root" => produce( LexerTokens.DOLLAR_ROOT, line, col )
+          case "fatal" => produce( LexerTokens.DOLLAR_FATAL, line, col )
+          case "error" => produce( LexerTokens.DOLLAR_ERROR, line, col )
+          case "warning" => produce( LexerTokens.DOLLAR_WARNING, line, col )
+          case "info" => produce( LexerTokens.DOLLAR_INFO, line, col )
+          case "setup" => produce( LexerTokens.DOLLAR_SETUP, line, col )
+          case "hold" => produce( LexerTokens.DOLLAR_HOLD, line, col )
+          case "setuphold" => produce( LexerTokens.DOLLAR_SETUPHOLD, line, col )
+          case "recovery" => produce( LexerTokens.DOLLAR_RECOVERY, line, col )
+          case "removal" => produce( LexerTokens.DOLLAR_REMOVAL, line, col )
+          case "recrem" => produce( LexerTokens.DOLLAR_RECREM, line, col )
+          case "skew" => produce( LexerTokens.DOLLAR_SKEW, line, col )
+          case "timeskew" => produce( LexerTokens.DOLLAR_TIMESKEW, line, col )
+          case "fullskew" => produce( LexerTokens.DOLLAR_FULLSKEW, line, col )
+          case "period" => produce( LexerTokens.DOLLAR_PERIOD, line, col )
+          case "width" => produce( LexerTokens.DOLLAR_WIDTH, line, col )
+          case "nochange" => produce( LexerTokens.DOLLAR_NOCHANGE, line, col )
           case _ => produce( LexerTokens.SYSTEM_ID, line, col, toktext )
         }
       } else if ( c.isLetter || c == '_' ) {
