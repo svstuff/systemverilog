@@ -17,11 +17,23 @@ sealed abstract class SVToken (val tokindex:Int, val toktype:Int, val ctx:Contex
   }
 
   override def getInputStream() : CharStream = {
+    assert(false)
     null
   }
 
   override def getTokenSource() : TokenSource = {
+    assert(false)
     null
+  }
+
+  override def getStartIndex() : Int = {
+    assert(false)
+    -1
+  }
+
+  override def getStopIndex() : Int = {
+    assert(false)
+    -1
   }
 
   override def getTokenIndex() : Int = {
@@ -38,14 +50,6 @@ sealed abstract class SVToken (val tokindex:Int, val toktype:Int, val ctx:Contex
 
   override def getLine() : Int = {
     line
-  }
-
-  override def getStartIndex() : Int = {
-    -1
-  }
-
-  override def getStopIndex() : Int = {
-    -1
   }
 
   override def toString() : String = {

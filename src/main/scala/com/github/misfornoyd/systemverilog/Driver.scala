@@ -108,10 +108,6 @@ object Driver {
     var lexerThread : Thread = null
     var parserThread : Thread = null
 
-    val lexerWrapper = new WrappedLexer(tokens)
-    val tokenStream = new CommonTokenStream(lexerWrapper)
-    val parser = new generated.SVParser(tokenStream)
-
     parserThread = new Thread(new Runnable {
       override def run() {
         try {
@@ -124,9 +120,14 @@ object Driver {
         }
       }
       def runParser() {
+        val lexerWrapper = new WrappedLexer(tokens)
+        val tokenStream = new UnbufferedTokenStream(lexerWrapper)
+        val parser = new generated.SVParser(tokenStream)
+
         // disable error recovery (causes NPE due to requiring a CharSource in the TokenStream)
         parser.setErrorHandler(new BailErrorStrategy())
         parser.setTrace( debugOptions.contains("trace") )
+        parser.setBuildParseTree(true)
 
         try {
           val tree = parser.source_text()

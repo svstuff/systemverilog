@@ -2884,17 +2884,26 @@ integral_number : number ;
 real_number : number ;
 unsigned_number : number ;
 
+identifier
+	: simple_identifier
+	| escaped_identifier
+	;
+
 identifier_list
 	: identifier (COMMA identifier)*
 	;
 
-escaped_identifier : simple_identifier ; // TODO
+escaped_identifier
+	: simple_identifier // TODO
+	;
 
 simple_identifier
-	: ID | KW_STD | KW_NEW | KW_OPTION ;
+	: ID | KW_STD | KW_NEW | KW_OPTION
+	;
 
 system_tf_identifier
-	: SYSTEM_ID | DOLLAR_FATAL | DOLLAR_ERROR | DOLLAR_WARNING | DOLLAR_INFO ;
+	: SYSTEM_ID | DOLLAR_FATAL | DOLLAR_ERROR | DOLLAR_WARNING | DOLLAR_INFO
+	;
 
 arrayed_identifier : simple_arrayed_identifier | escaped_arrayed_identifier ;
 block_identifier : identifier ;
@@ -2915,7 +2924,6 @@ hierarchical_variable_identifier : hierarchical_identifier ;
 hierarchical_task_identifier : hierarchical_identifier ;
 hierarchical_sequence_identifier : hierarchical_identifier ;
 hierarchical_property_identifier : hierarchical_identifier ;
-identifier : simple_identifier | escaped_identifier ;
 inout_port_identifier : identifier ;
 input_port_identifier : identifier ;
 instance_identifier : identifier ;
@@ -2980,7 +2988,7 @@ method_identifier : identifier ;
 function_identifier : identifier ;
 
 hierarchical_identifier
-	: (DOLLAR_ROOT DOT)? (identifier constant_bit_select DOT)* identifier
+	: (DOLLAR_ROOT DOT)? identifier (constant_bit_select DOT identifier)*
 	;
 
 hierarchical_parameter_identifier
