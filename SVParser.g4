@@ -23,23 +23,27 @@ options {
 	package com.github.misfornoyd.systemverilog.generated;
 }
 
+// TODO this is not according to the LRM grammar
 source_text
 	: (TIMESCALE | package_import_declaration | description)* EOF
 	;
 
 description
-	: package_declaration
-	| module_declaration
+	: module_declaration
 	| interface_declaration
-	| class_declaration
 	| program_declaration
+	| package_declaration
 	| attribute_instances package_item
 	| attribute_instances bind_directive
+	| class_declaration // TODO this is not according to the LRM grammar
+	// TODO udp_declaration
+	// TODO config_declaration
 	;
 
+// Note: LRM is wrong, can't have ; here
 bind_directive
-	: KW_BIND bind_target_scope (COLON bind_target_instance_list)? bind_instantiation SEMI
-	| KW_BIND bind_target_instance bind_instantiation SEMI
+	: KW_BIND bind_target_scope (COLON bind_target_instance_list)? bind_instantiation
+	| KW_BIND bind_target_instance bind_instantiation
 	;
 
 bind_target_scope
@@ -2885,7 +2889,12 @@ identifier_list
 	;
 
 escaped_identifier : simple_identifier ; // TODO
-simple_identifier : ID | KW_STD | KW_NEW | KW_OPTION ;
+
+simple_identifier
+	: ID | KW_STD | KW_NEW | KW_OPTION ;
+
+system_tf_identifier
+	: SYSTEM_ID | DOLLAR_FATAL | DOLLAR_ERROR | DOLLAR_WARNING | DOLLAR_INFO ;
 
 arrayed_identifier : simple_arrayed_identifier | escaped_arrayed_identifier ;
 block_identifier : identifier ;
@@ -2947,7 +2956,6 @@ formal_port_identifier : identifier ;
 sequence_identifier : identifier ;
 member_identifier : identifier ;
 hierarchical_tf_identifier : hierarchical_identifier ;
-system_tf_identifier : SYSTEM_ID ;
 tf_identifier : identifier ;
 hierarchical_array_identifier : hierarchical_identifier ;
 index_variable_identifier : identifier ;

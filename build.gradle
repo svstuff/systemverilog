@@ -4,6 +4,8 @@ apply plugin:'eclipse'
 
 mainClassName = 'com.github.misfornoyd.systemverilog.Driver'
 
+applicationDefaultJvmArgs = ["-Xmx4g"]
+
 repositories{
     mavenCentral()
     mavenLocal()
