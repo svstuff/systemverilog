@@ -253,16 +253,39 @@ package_item
 	;
 
 package_or_generate_item_declaration
-	: data_declaration
-	| class_declaration
-	| function_declaration
+	: net_declaration
+	| data_declaration
 	| task_declaration
+	| function_declaration
+	| checker_declaration
 	| dpi_import_export
+	| extern_constraint_declaration
+	| class_declaration
+	| class_constructor_declaration
 	| local_parameter_declaration SEMI
 	| parameter_declaration SEMI
 	| covergroup_declaration
+	| overload_declaration
 	| assertion_item_declaration
 	| SEMI
+	;
+
+net_declaration
+	: net_type (drive_strength | charge_strength)? (KW_VECTORED | KW_SCALARED)? data_type_or_implicit delay3? list_of_net_decl_assignments SEMI
+	| net_type_identifier delay_control? list_of_net_decl_assignments SEMI
+	| KW_INTERCONNECT implicit_data_type (HASH delay_value)? net_identifier unpacked_dimension* (COMMA net_identifier unpacked_dimension*)? SEMI
+	;
+
+extern_constraint_declaration
+	: KW_STATIC? KW_CONSTRAINT class_scope constraint_identifier constraint_block
+	;
+
+list_of_net_decl_assignments
+	: net_decl_assignment (COMMA net_decl_assignment)*
+	;
+
+net_decl_assignment
+	: net_identifier unpacked_dimension* (EQ expression)?
 	;
 
 specify_block
@@ -727,7 +750,12 @@ data_declaration
 	: KW_CONST? KW_VAR? lifetime? data_type_or_implicit list_of_variable_decl_assignments SEMI
 	| type_declaration
 	| package_import_declaration
-//	| net_type_declaration  // TODO typo in A2.1.3?
+	| net_type_declaration
+	;
+
+net_type_declaration
+	: KW_NETTYPE data_type net_type_identifier (KW_WITH (package_scope | class_scope)? tf_identifier)? SEMI
+	| KW_NETTYPE (package_scope | class_scope)? net_type_identifier net_type_identifier SEMI
 	;
 
 list_of_variable_decl_assignments
@@ -1896,9 +1924,9 @@ module_keyword
 elaboration_system_task
 	: DOLLAR_FATAL
 	  (LPAREN finish_number (COMMA list_of_arguments)? RPAREN)? SEMI
-	| DOLLAR_ERROR (LPAREN list_of_arguments? RPAREN)? SEMI
-	| DOLLAR_WARNING (LPAREN list_of_arguments? RPAREN)? SEMI
-	| DOLLAR_INFO (LPAREN list_of_arguments? RPAREN)? SEMI
+	| DOLLAR_ERROR (LPAREN list_of_arguments RPAREN)? SEMI
+	| DOLLAR_WARNING (LPAREN list_of_arguments RPAREN)? SEMI
+	| DOLLAR_INFO (LPAREN list_of_arguments RPAREN)? SEMI
 	;
 
 finish_number
@@ -2889,6 +2917,7 @@ memory_identifier : identifier ;
 module_identifier : identifier ;
 module_instance_identifier : arrayed_identifier ;
 net_identifier : identifier ;
+net_type_identifier : identifier ;
 output_port_identifier : identifier ;
 parameter_identifier : identifier ;
 port_identifier : identifier ;
