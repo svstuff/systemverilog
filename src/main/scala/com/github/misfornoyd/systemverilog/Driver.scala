@@ -126,9 +126,7 @@ object Driver {
       def runParser() {
         // disable error recovery (causes NPE due to requiring a CharSource in the TokenStream)
         parser.setErrorHandler(new BailErrorStrategy())
-        if ( debugOptions.contains("trace") ){
-          parser.setTrace(true)
-        }
+        parser.setTrace( debugOptions.contains("trace") )
 
         try {
           val tree = parser.source_text()
@@ -152,11 +150,15 @@ object Driver {
         val sb = new StringBuilder
         val toktext = tok.getText()
         sb ++= "Parsing failed. Found: %s".format(toktext)
-        val typetext = LexerTokens.tokenConstText(tok.getType())
-        if ( toktext != typetext ) {
-          sb ++= "(%s)\n".format(typetext)
-        } else {
-          sb ++= "\n"
+        if ( tok.isEOF ) {
+            sb ++= "\n"
+        }else{
+          val typetext = LexerTokens.tokenConstText(tok.getType())
+          if ( toktext != typetext ) {
+            sb ++= "(%s)\n".format(typetext)
+          } else {
+            sb ++= "\n"
+          }
         }
         sb ++= "Expected one of: "
         for ( i <- e.getExpectedTokens.toList ){

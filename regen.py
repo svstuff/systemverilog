@@ -39,6 +39,22 @@ tokens_special = [
 	("TIMESCALE",           "`timescale"),
 	("DOLLAR_UNIT",         "$unit"),
 	("DOLLAR_ROOT",         "$root"),
+	("DOLLAR_FATAL",        "$fatal"),
+	("DOLLAR_ERROR",        "$error"),
+	("DOLLAR_WARNING",      "$warning"),
+	("DOLLAR_INFO",         "$info"),
+	("DOLLAR_SETUP",        "$setup"),
+	("DOLLAR_HOLD",         "$hold"),
+	("DOLLAR_SETUPHOLD",    "$setuphold"),
+	("DOLLAR_RECOVERY",     "$recovery"),
+	("DOLLAR_REMOVAL",      "$removal"),
+	("DOLLAR_RECREM",       "$recrem"),
+	("DOLLAR_SKEW",         "$skew"),
+	("DOLLAR_TIMESKEW",     "$timeskew"),
+	("DOLLAR_FULLSKEW",     "$fullskew"),
+	("DOLLAR_PERIOD",       "$period"),
+	("DOLLAR_WIDTH",        "$width"),
+	("DOLLAR_NOCHANGE",     "$nochange"),
 	("KW_1STEP",            "1step"),
 ]
 
@@ -79,6 +95,7 @@ tokens_operators = [
 	("MUL",                 "*"),
 	("MUL2",                "**"),
 	("MUL_EQ",              "*="),
+	("MUL_GT",              "*>"),
 	("ADD",                 "+"),
 	("ADD2",                "++"),
 	("ADD_EQ",              "+="),
@@ -213,7 +230,7 @@ def regen():
 		f.write("}\n")
 
 	# run ANTLR on the grammar
-	subprocess.check_call("java -jar lib/antlr4-4.2.2-complete.jar -o {} SVParser.g4".format(javaDir), shell=True)
+	subprocess.check_call("java -Xmx2g -jar lib/antlr-4.4-complete.jar -o {} SVParser.g4".format(javaDir), shell=True)
 
 if __name__ == "__main__":
 	regen()

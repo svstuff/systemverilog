@@ -23,17 +23,79 @@ options {
 	package com.github.misfornoyd.systemverilog.generated;
 }
 
+// TODO this is not according to the LRM grammar
 source_text
 	: (TIMESCALE | package_import_declaration | description)* EOF
 	;
 
 description
-	: package_declaration
-	| module_declaration
+	: module_declaration
 	| interface_declaration
-	| class_declaration
 	| program_declaration
+	| package_declaration
 	| attribute_instances package_item
+	| attribute_instances bind_directive
+	| class_declaration // TODO this is not according to the LRM grammar
+	// TODO udp_declaration
+	// TODO config_declaration
+	;
+
+// Note: LRM is wrong, can't have ; here
+bind_directive
+	: KW_BIND bind_target_scope (COLON bind_target_instance_list)? bind_instantiation
+	| KW_BIND bind_target_instance bind_instantiation
+	;
+
+bind_target_scope
+	: module_identifier
+	| interface_identifier
+	;
+
+bind_target_instance
+	: hierarchical_identifier constant_bit_select
+	;
+
+bind_target_instance_list
+	: bind_target_instance (COMMA bind_target_instance)*
+	;
+
+bind_instantiation
+	: program_instantiation
+	| module_instantiation
+	| interface_instantiation
+	| checker_instantiation
+	;
+
+program_instantiation
+	: program_identifier (parameter_value_assignment)? hierarchical_instance (COMMA hierarchical_instance)* SEMI
+	;
+
+interface_instantiation
+	: interface_identifier (parameter_value_assignment)? hierarchical_instance (COMMA hierarchical_instance)* SEMI
+	;
+
+module_instantiation
+	: module_identifier (parameter_value_assignment)? hierarchical_instance (COMMA hierarchical_instance)* SEMI
+	;
+
+// Note: the LRM has an optional block for list_of_port_connections, but that's
+// redundant since one of the alternatives is empty anyway.
+hierarchical_instance
+	: name_of_instance LPAREN list_of_port_connections RPAREN
+	;
+
+list_of_port_connections
+	: ordered_port_connection (COMMA ordered_port_connection)*
+	| named_port_connection (COMMA named_port_connection)*
+	;
+
+ordered_port_connection
+	: attribute_instances expression?
+	;
+
+named_port_connection
+	: attribute_instances DOT port_identifier (LPAREN expression? RPAREN)?
+	| attribute_instances DOT MUL
 	;
 
 class_declaration
@@ -195,15 +257,360 @@ package_item
 	;
 
 package_or_generate_item_declaration
-	: data_declaration
-	| class_declaration
-	| function_declaration
+	: net_declaration
+	| data_declaration
 	| task_declaration
+	| function_declaration
+	| checker_declaration
 	| dpi_import_export
+	| extern_constraint_declaration
+	| class_declaration
+	| class_constructor_declaration
 	| local_parameter_declaration SEMI
 	| parameter_declaration SEMI
 	| covergroup_declaration
+	| overload_declaration
+	| assertion_item_declaration
 	| SEMI
+	;
+
+net_declaration
+	: net_type (drive_strength | charge_strength)? (KW_VECTORED | KW_SCALARED)? data_type_or_implicit delay3? list_of_net_decl_assignments SEMI
+	| net_type_identifier delay_control? list_of_net_decl_assignments SEMI
+	| KW_INTERCONNECT implicit_data_type (HASH delay_value)? net_identifier unpacked_dimension* (COMMA net_identifier unpacked_dimension*)? SEMI
+	;
+
+extern_constraint_declaration
+	: KW_STATIC? KW_CONSTRAINT class_scope constraint_identifier constraint_block
+	;
+
+list_of_net_decl_assignments
+	: net_decl_assignment (COMMA net_decl_assignment)*
+	;
+
+net_decl_assignment
+	: net_identifier unpacked_dimension* (EQ expression)?
+	;
+
+specify_block
+	: KW_SPECIFY specify_item* KW_ENDSPECIFY
+	;
+
+specify_item
+	: specparam_declaration
+	| pulsestyle_declaration
+	| showcancelled_declaration
+	| path_declaration
+	| system_timing_check
+	;
+
+pulsestyle_declaration
+	: KW_PULSESTYLE_ONEVENT list_of_path_outputs SEMI
+	| KW_PULSESTYLE_ONDETECT list_of_path_outputs SEMI
+	;
+
+showcancelled_declaration
+	: KW_SHOWCANCELLED list_of_path_outputs SEMI
+	| KW_NOSHOWCANCELLED list_of_path_outputs SEMI
+	;
+
+path_declaration
+	: simple_path_declaration SEMI
+	| edge_sensitive_path_declaration SEMI
+	| state_dependent_path_declaration SEMI
+	;
+
+simple_path_declaration
+	: parallel_path_description EQ path_delay_value
+	| full_path_description EQ path_delay_value
+	;
+
+parallel_path_description
+	: LPAREN specify_input_terminal_descriptor polarity_operator? EQ_GT specify_output_terminal_descriptor RPAREN
+	;
+
+full_path_description
+	: LPAREN list_of_path_inputs polarity_operator? MUL_GT list_of_path_outputs RPAREN
+	;
+
+list_of_path_inputs
+	: specify_input_terminal_descriptor (COMMA specify_input_terminal_descriptor)*
+	;
+
+list_of_path_outputs
+	: specify_output_terminal_descriptor (COMMA specify_output_terminal_descriptor)*
+	;
+
+specify_input_terminal_descriptor
+	: input_identifier (LSQUARE constant_range_expression RSQUARE)?
+	;
+
+specify_output_terminal_descriptor
+	: output_identifier (LSQUARE constant_range_expression RSQUARE)?
+	;
+
+input_identifier
+	: input_port_identifier
+	| inout_port_identifier
+	| interface_identifier DOT port_identifier
+	;
+
+output_identifier
+	: output_port_identifier
+	| inout_port_identifier
+	| interface_identifier DOT port_identifier
+	;
+
+path_delay_value
+	: list_of_path_delay_expressions
+	| LPAREN list_of_path_delay_expressions RPAREN
+	;
+
+list_of_path_delay_expressions
+	: t_path_delay_expression
+	| trise_path_delay_expression COMMA tfall_path_delay_expression
+	| trise_path_delay_expression COMMA tfall_path_delay_expression COMMA tz_path_delay_expression
+	| t01_path_delay_expression COMMA t10_path_delay_expression COMMA t0z_path_delay_expression COMMA tz1_path_delay_expression COMMA t1z_path_delay_expression COMMA tz0_path_delay_expression
+	| t01_path_delay_expression COMMA t10_path_delay_expression COMMA t0z_path_delay_expression COMMA tz1_path_delay_expression COMMA t1z_path_delay_expression COMMA tz0_path_delay_expression COMMA t0x_path_delay_expression COMMA tx1_path_delay_expression COMMA t1x_path_delay_expression COMMA tx0_path_delay_expression COMMA txz_path_delay_expression COMMA tzx_path_delay_expression
+	;
+
+t_path_delay_expression : path_delay_expression ;
+trise_path_delay_expression : path_delay_expression ;
+tfall_path_delay_expression : path_delay_expression ;
+tz_path_delay_expression : path_delay_expression ;
+t01_path_delay_expression : path_delay_expression ;
+t10_path_delay_expression : path_delay_expression ;
+t0z_path_delay_expression : path_delay_expression ;
+tz1_path_delay_expression : path_delay_expression ;
+t1z_path_delay_expression : path_delay_expression ;
+tz0_path_delay_expression : path_delay_expression ;
+t0x_path_delay_expression : path_delay_expression ;
+tx1_path_delay_expression : path_delay_expression ;
+t1x_path_delay_expression : path_delay_expression ;
+tx0_path_delay_expression : path_delay_expression ;
+txz_path_delay_expression : path_delay_expression ;
+tzx_path_delay_expression : path_delay_expression ;
+path_delay_expression : constant_mintypmax_expression ;
+
+edge_sensitive_path_declaration
+	: parallel_edge_sensitive_path_description EQ path_delay_value
+	| full_edge_sensitive_path_description EQ path_delay_value
+	;
+
+parallel_edge_sensitive_path_description
+	: LPAREN edge_identifier? specify_input_terminal_descriptor polarity_operator? EQ_GT LPAREN specify_output_terminal_descriptor polarity_operator? COLON data_source_expression RPAREN RPAREN
+	;
+
+full_edge_sensitive_path_description
+	: LPAREN edge_identifier? list_of_path_inputs polarity_operator? MUL_GT LPAREN list_of_path_outputs polarity_operator? COLON data_source_expression RPAREN RPAREN
+	;
+
+data_source_expression : expression ;
+
+state_dependent_path_declaration
+	: KW_IF LPAREN module_path_expression RPAREN simple_path_declaration
+	| KW_IF LPAREN module_path_expression RPAREN edge_sensitive_path_declaration
+	| KW_IFNONE simple_path_declaration
+	;
+
+polarity_operator : ADD | SUB ;
+
+system_timing_check
+	: setup_timing_check
+	| hold_timing_check
+	| setuphold_timing_check
+	| recovery_timing_check
+	| removal_timing_check
+	| recrem_timing_check
+	| skew_timing_check
+	| timeskew_timing_check
+	| fullskew_timing_check
+	| period_timing_check
+	| width_timing_check
+	| nochange_timing_check
+	;
+
+setup_timing_check
+	: DOLLAR_SETUP LPAREN data_event COMMA reference_event COMMA timing_check_limit (COMMA notifier?)? RPAREN SEMI
+	;
+
+hold_timing_check
+	: DOLLAR_HOLD LPAREN reference_event COMMA data_event COMMA timing_check_limit (COMMA notifier?)? RPAREN SEMI
+	;
+
+setuphold_timing_check
+	: DOLLAR_SETUPHOLD LPAREN reference_event COMMA data_event COMMA timing_check_limit COMMA timing_check_limit (COMMA notifier? (COMMA timestamp_condition? (COMMA timecheck_condition? (COMMA delayed_reference? (COMMA delayed_data? )? )? )? )? )? RPAREN SEMI
+	;
+
+recovery_timing_check
+	: DOLLAR_RECOVERY LPAREN reference_event COMMA data_event COMMA timing_check_limit (COMMA notifier? )? RPAREN SEMI
+	;
+
+removal_timing_check
+	: DOLLAR_REMOVAL LPAREN reference_event COMMA data_event COMMA timing_check_limit (COMMA notifier? )? RPAREN SEMI
+	;
+
+recrem_timing_check
+	: DOLLAR_RECREM LPAREN reference_event COMMA data_event COMMA timing_check_limit COMMA timing_check_limit (COMMA notifier? (COMMA timestamp_condition? (COMMA timecheck_condition? (COMMA delayed_reference? (COMMA delayed_data? )? )? )? )? )? RPAREN SEMI
+	;
+
+skew_timing_check
+	: DOLLAR_SKEW LPAREN reference_event COMMA data_event COMMA timing_check_limit (COMMA notifier? )? RPAREN SEMI
+	;
+
+timeskew_timing_check
+	: DOLLAR_TIMESKEW LPAREN reference_event COMMA data_event COMMA timing_check_limit (COMMA notifier? (COMMA event_based_flag? (COMMA remain_active_flag? )? )? )? RPAREN SEMI
+	;
+
+fullskew_timing_check
+	: DOLLAR_FULLSKEW LPAREN reference_event COMMA data_event COMMA timing_check_limit COMMA timing_check_limit (COMMA notifier? (COMMA event_based_flag? (COMMA remain_active_flag?)? )? )? RPAREN SEMI
+	;
+
+period_timing_check
+	: DOLLAR_PERIOD LPAREN controlled_reference_event COMMA timing_check_limit (COMMA notifier?)? RPAREN SEMI
+	;
+
+width_timing_check
+	: DOLLAR_WIDTH LPAREN controlled_reference_event COMMA timing_check_limit COMMA threshold (COMMA notifier?)? RPAREN SEMI
+	;
+
+nochange_timing_check
+	: DOLLAR_NOCHANGE LPAREN reference_event COMMA data_event COMMA start_edge_offset COMMA end_edge_offset (COMMA notifier?)? RPAREN SEMI
+	;
+
+timecheck_condition : mintypmax_expression ;
+timestamp_condition : mintypmax_expression ;
+timing_check_limit : expression ;
+controlled_reference_event : controlled_timing_check_event ;
+data_event : timing_check_event ;
+end_edge_offset : mintypmax_expression ;
+event_based_flag : constant_expression ;
+notifier : variable_identifier ;
+reference_event : timing_check_event ;
+remain_active_flag : constant_mintypmax_expression ;
+start_edge_offset : mintypmax_expression ;
+threshold : constant_expression ;
+
+delayed_data
+	: terminal_identifier
+	| terminal_identifier LSQUARE constant_mintypmax_expression RSQUARE
+	;
+
+delayed_reference
+	: terminal_identifier
+	| terminal_identifier LSQUARE constant_mintypmax_expression RSQUARE
+	;
+
+timing_check_event
+	: timing_check_event_control? specify_terminal_descriptor (AND3 timing_check_condition)?
+	;
+
+controlled_timing_check_event
+	: timing_check_event_control specify_terminal_descriptor (AND3 timing_check_condition)?
+	;
+
+timing_check_event_control
+	: KW_POSEDGE
+	| KW_NEGEDGE
+	| KW_EDGE
+	| edge_control_specifier
+	;
+
+specify_terminal_descriptor
+	: specify_input_terminal_descriptor
+	| specify_output_terminal_descriptor
+	;
+
+edge_control_specifier
+	: KW_EDGE LSQUARE edge_descriptor (COMMA edge_descriptor)* RSQUARE
+	;
+
+// TODO get real examples of this stuff...
+edge_descriptor
+	: {_input.LT(1).getText().matches("01")}? LIT_NUM
+	| {_input.LT(1).getText().matches("10")}? LIT_NUM
+	| z_or_x zero_or_one
+	| zero_or_one z_or_x
+	;
+
+zero_or_one
+	: {_input.LT(1).getText().matches("0")}? LIT_NUM
+	| {_input.LT(1).getText().matches("1")}? LIT_NUM
+	;
+
+z_or_x
+	: {_input.LT(1).getText().matches("x")}? LIT_STRING
+	| {_input.LT(1).getText().matches("X")}? LIT_STRING
+	| {_input.LT(1).getText().matches("z")}? LIT_STRING
+	| {_input.LT(1).getText().matches("Z")}? LIT_STRING
+	;
+
+timing_check_condition
+	: scalar_timing_check_condition
+	| LPAREN scalar_timing_check_condition RPAREN
+	;
+
+scalar_timing_check_condition
+	: expression
+	| INV expression
+	| expression EQ2 scalar_constant
+	| expression EQ3 scalar_constant
+	| expression NOT_EQ scalar_constant
+	| expression NOT_EQ2 scalar_constant
+	;
+
+scalar_constant
+	// TODO : 1'b0 | 1'b1 | 1'B0 | 1'B1 | 'b0 | 'b1 | 'B0 | 'B1 | 1 | 0
+	: LIT_NUM
+	;
+
+sequence_declaration
+	: KW_SEQUENCE sequence_identifier (LPAREN sequence_port_list? RPAREN)? SEMI assertion_variable_declaration* sequence_expr SEMI? KW_ENDSEQUENCE (COLON sequence_identifier)?
+	;
+
+sequence_port_list
+	: sequence_port_item (COMMA sequence_port_item)*
+	;
+
+sequence_port_item
+	: attribute_instances (KW_LOCAL sequence_lvar_port_direction?)? sequence_formal_type formal_port_identifier variable_dimension* (EQ sequence_actual_arg)?
+	;
+
+sequence_lvar_port_direction : KW_INPUT | KW_INOUT | KW_OUTPUT ;
+
+sequence_formal_type
+	: data_type_or_implicit
+	| KW_SEQUENCE
+	| KW_UNTYPED
+	;
+
+assertion_variable_declaration
+	: var_data_type list_of_variable_decl_assignments SEMI
+	;
+
+assertion_item_declaration
+	: property_declaration
+	| sequence_declaration
+	| let_declaration
+	;
+
+property_declaration
+	: KW_PROPERTY property_identifier (LPAREN property_port_list? RPAREN)? SEMI assertion_variable_declaration* property_spec SEMI? KW_ENDPROPERTY (COLON property_identifier)?
+	;
+
+property_port_list
+	: property_port_item (COMMA property_port_item)*
+	;
+
+property_port_item
+	: attribute_instances (KW_LOCAL property_lvar_port_direction?)? property_formal_type formal_port_identifier variable_dimension* (EQ property_actual_arg)?
+	;
+
+property_lvar_port_direction : KW_INPUT ;
+
+property_formal_type
+	: sequence_formal_type
+	| KW_PROPERTY
 	;
 
 covergroup_declaration
@@ -347,7 +754,12 @@ data_declaration
 	: KW_CONST? KW_VAR? lifetime? data_type_or_implicit list_of_variable_decl_assignments SEMI
 	| type_declaration
 	| package_import_declaration
-//	| net_type_declaration  // TODO typo in A2.1.3?
+	| net_type_declaration
+	;
+
+net_type_declaration
+	: KW_NETTYPE data_type net_type_identifier (KW_WITH (package_scope | class_scope)? tf_identifier)? SEMI
+	| KW_NETTYPE (package_scope | class_scope)? net_type_identifier net_type_identifier SEMI
 	;
 
 list_of_variable_decl_assignments
@@ -1487,27 +1899,390 @@ task_prototype
 	;
 
 module_declaration
-	: module_declaration_non_ansi
-	| module_declaration_ansi
+	: module_nonansi_header timeunits_declaration? module_item*
+	  KW_ENDMODULE (COLON module_identifier)?
+	| module_ansi_header timeunits_declaration? non_port_module_item*
+	  KW_ENDMODULE (COLON module_identifier)?
+	| attribute_instances module_keyword lifetime? module_identifier
+	  LPAREN DOT MUL RPAREN SEMI
+	  timeunits_declaration? module_item*
+	  KW_ENDMODULE (COLON module_identifier)?
+	| KW_EXTERN module_nonansi_header
+	| KW_EXTERN module_ansi_header
 	;
 
-module_declaration_non_ansi
-	: attribute_instances module_keyword module_identifier ( parameter_port_list )? ( list_of_ports )? SEMI
-	  module_body KW_ENDMODULE ( COLON module_identifier )?
-    ;
-
-module_declaration_ansi
-	: attribute_instances module_keyword module_identifier ( parameter_port_list )? ( list_of_port_declarations )? SEMI
-	  module_body KW_ENDMODULE ( COLON module_identifier )?
+module_nonansi_header
+	: attribute_instances module_keyword lifetime? module_identifier
+	  package_import_declaration* parameter_port_list? list_of_ports SEMI
 	;
 
-// TODO skip module contents for now.
-module_body
-	: (~KW_ENDMODULE)*?
+module_ansi_header
+	: attribute_instances module_keyword lifetime? module_identifier
+	  package_import_declaration* parameter_port_list? list_of_port_declarations? SEMI
 	;
 
 module_keyword
 	: KW_MODULE | KW_MACROMODULE
+	;
+
+elaboration_system_task
+	: DOLLAR_FATAL
+	  (LPAREN finish_number (COMMA list_of_arguments)? RPAREN)? SEMI
+	| DOLLAR_ERROR (LPAREN list_of_arguments RPAREN)? SEMI
+	| DOLLAR_WARNING (LPAREN list_of_arguments RPAREN)? SEMI
+	| DOLLAR_INFO (LPAREN list_of_arguments RPAREN)? SEMI
+	;
+
+finish_number
+	: LIT_NUM // TODO: 0 | 1 | 2
+	;
+
+gate_instantiation
+	: cmos_switchtype delay3? cmos_switch_instance (COMMA cmos_switch_instance)* SEMI
+	| enable_gatetype drive_strength? delay3? enable_gate_instance (COMMA enable_gate_instance)* SEMI
+	| mos_switchtype delay3? mos_switch_instance (COMMA mos_switch_instance)* SEMI
+	| n_input_gatetype drive_strength? delay2? n_input_gate_instance (COMMA n_input_gate_instance)* SEMI
+	| n_output_gatetype drive_strength? delay2? n_output_gate_instance (COMMA n_output_gate_instance)* SEMI
+	| pass_en_switchtype delay2? pass_enable_switch_instance (COMMA pass_enable_switch_instance)* SEMI
+	| pass_switchtype pass_switch_instance (COMMA pass_switch_instance)* SEMI
+	| KW_PULLDOWN pulldown_strength? pull_gate_instance (COMMA pull_gate_instance)* SEMI
+	| KW_PULLUP pullup_strength? pull_gate_instance (COMMA pull_gate_instance)* SEMI
+	;
+
+pulldown_strength
+	: LPAREN strength0 COMMA strength1 RPAREN
+	| LPAREN strength1 COMMA strength0 RPAREN
+	| LPAREN strength0 RPAREN
+	;
+
+pullup_strength
+	: LPAREN strength0 COMMA strength1 RPAREN
+	| LPAREN strength1 COMMA strength0 RPAREN
+	| LPAREN strength1 RPAREN
+	;
+
+enable_terminal : expression ;
+inout_terminal : net_lvalue ;
+input_terminal : expression ;
+ncontrol_terminal : expression ;
+output_terminal : net_lvalue ;
+pcontrol_terminal : expression ;
+
+cmos_switchtype
+	: KW_CMOS | KW_RCMOS
+	;
+enable_gatetype
+	: KW_BUFIF0 | KW_BUFIF1 | KW_NOTIF0 | KW_NOTIF1
+	;
+mos_switchtype
+	: KW_NMOS | KW_PMOS | KW_RNMOS | KW_RPMOS
+	;
+n_input_gatetype
+	: KW_AND | KW_NAND | KW_OR | KW_NOR | KW_XOR | KW_XNOR
+	;
+n_output_gatetype
+	: KW_BUF | KW_NOT
+	;
+pass_en_switchtype
+	: KW_TRANIF0 | KW_TRANIF1 | KW_RTRANIF1 | KW_RTRANIF0
+	;
+pass_switchtype
+	: KW_TRAN | KW_RTRAN
+	;
+
+cmos_switch_instance
+	: name_of_instance? LPAREN output_terminal COMMA input_terminal COMMA ncontrol_terminal COMMA pcontrol_terminal RPAREN
+	;
+
+enable_gate_instance
+	: name_of_instance? LPAREN output_terminal COMMA input_terminal COMMA enable_terminal RPAREN
+	;
+
+mos_switch_instance
+	: name_of_instance? LPAREN output_terminal COMMA input_terminal COMMA enable_terminal RPAREN
+	;
+
+n_input_gate_instance
+	: name_of_instance? LPAREN output_terminal COMMA input_terminal (COMMA input_terminal)* RPAREN
+	;
+
+n_output_gate_instance
+	: name_of_instance? LPAREN output_terminal (COMMA output_terminal)* COMMA input_terminal RPAREN
+	;
+
+pass_switch_instance
+	: name_of_instance? LPAREN inout_terminal COMMA inout_terminal RPAREN
+	;
+
+pass_enable_switch_instance
+	: name_of_instance? LPAREN inout_terminal COMMA inout_terminal COMMA enable_terminal RPAREN
+	;
+
+pull_gate_instance
+	: name_of_instance? LPAREN output_terminal RPAREN
+	;
+
+udp_instantiation
+	: udp_identifier drive_strength? delay2? udp_instance (COMMA udp_instance)* SEMI
+	;
+
+udp_instance
+	: name_of_instance? LPAREN output_terminal COMMA input_terminal (COMMA input_terminal)* RPAREN
+	;
+
+clocking_declaration
+	: KW_DEFAULT? KW_CLOCKING clocking_identifier? clocking_event SEMI clocking_item* KW_ENDCLOCKING (COLON clocking_identifier)?
+	| KW_GLOBAL KW_CLOCKING clocking_identifier? clocking_event SEMI KW_ENDCLOCKING (COLON clocking_identifier)?
+	;
+
+clocking_item
+	: KW_DEFAULT default_skew SEMI
+	| clocking_direction list_of_clocking_decl_assign SEMI
+	| attribute_instances assertion_item_declaration
+	;
+
+default_skew
+	: KW_INPUT clocking_skew
+	| KW_OUTPUT clocking_skew
+	| KW_INPUT clocking_skew KW_OUTPUT clocking_skew
+	;
+
+clocking_direction
+	: KW_INPUT clocking_skew?
+	| KW_OUTPUT clocking_skew?
+	| KW_INPUT clocking_skew? KW_OUTPUT clocking_skew?
+	| KW_INOUT
+	;
+
+list_of_clocking_decl_assign
+	: clocking_decl_assign (COMMA clocking_decl_assign)*
+	;
+
+clocking_decl_assign
+	: signal_identifier (EQ expression)?
+	;
+
+clocking_skew
+	: edge_identifier delay_control?
+	| delay_control
+	;
+
+module_common_item
+	: module_or_generate_item_declaration
+	| interface_instantiation
+	| program_instantiation
+	| assertion_item
+	| bind_directive
+	| continuous_assign
+	| net_alias
+	| initial_construct
+	| final_construct
+	| always_construct
+	| loop_generate_construct
+	| conditional_generate_construct
+	| elaboration_system_task
+	;
+
+module_item
+	: port_declaration SEMI
+	| non_port_module_item
+	;
+
+module_or_generate_item
+	: attribute_instances parameter_override
+	| attribute_instances gate_instantiation
+	| attribute_instances udp_instantiation
+	| attribute_instances module_instantiation
+	| attribute_instances module_common_item
+	;
+
+module_or_generate_item_declaration
+	: package_or_generate_item_declaration
+	| genvar_declaration
+	| clocking_declaration
+	| KW_DEFAULT KW_CLOCKING clocking_identifier SEMI
+	| KW_DEFAULT KW_DISABLE KW_IFF expression_or_dist SEMI
+	;
+
+non_port_module_item
+	: generate_region
+	| module_or_generate_item
+	| specify_block
+	| attribute_instances specparam_declaration
+	| program_declaration
+	| module_declaration
+	| interface_declaration
+	| timeunits_declaration
+	;
+
+generate_region
+	: KW_GENERATE generate_item* KW_ENDGENERATE
+	;
+
+loop_generate_construct
+	: KW_FOR LPAREN genvar_initialization SEMI genvar_expression SEMI genvar_iteration RPAREN generate_block
+	;
+
+genvar_initialization
+	: KW_GENVAR? genvar_identifier EQ constant_expression
+	;
+
+genvar_iteration
+	: genvar_identifier assignment_operator genvar_expression
+	| inc_or_dec_operator genvar_identifier
+	| genvar_identifier inc_or_dec_operator
+	;
+
+conditional_generate_construct
+	: if_generate_construct
+	| case_generate_construct
+	;
+
+if_generate_construct
+	: KW_IF LPAREN constant_expression RPAREN generate_block
+	  (KW_ELSE generate_block)?
+	;
+
+case_generate_construct
+	: KW_CASE LPAREN constant_expression RPAREN case_generate_item
+	  case_generate_item* KW_ENDCASE
+	;
+
+case_generate_item
+	: constant_expression (COMMA constant_expression)* COLON generate_block
+	| KW_DEFAULT COLON? generate_block
+	;
+
+generate_block
+	: generate_item
+	| (generate_block_identifier COLON)? KW_BEGIN
+	  (COLON generate_block_identifier)?
+	  generate_item*
+	  KW_END (COLON generate_block_identifier)?
+	;
+
+generate_item
+	: module_or_generate_item
+	| interface_or_generate_item
+	| checker_or_generate_item
+	;
+
+interface_or_generate_item
+	: attribute_instances module_common_item
+	| attribute_instances modport_declaration
+	| attribute_instances extern_tf_declaration
+	;
+
+extern_tf_declaration
+	: KW_EXTERN method_prototype SEMI
+	| KW_EXTERN KW_FORKJOIN task_prototype SEMI
+	;
+
+checker_or_generate_item
+	: checker_or_generate_item_declaration
+	| initial_construct
+	| always_construct
+	| final_construct
+	| assertion_item
+	| continuous_assign
+	| checker_generate_item
+	;
+
+checker_or_generate_item_declaration
+	: KW_RAND? data_declaration
+	| function_declaration
+	| checker_declaration
+	| assertion_item_declaration
+	| covergroup_declaration
+	| overload_declaration
+	| genvar_declaration
+	| clocking_declaration
+	| KW_DEFAULT KW_CLOCKING clocking_identifier SEMI
+	| KW_DEFAULT KW_DISABLE KW_IFF expression_or_dist SEMI
+	| SEMI
+	;
+
+checker_declaration
+	: KW_CHECKER checker_identifier (LPAREN checker_port_list? RPAREN)? SEMI (attribute_instances checker_or_generate_item)* KW_ENDCHECKER (COLON checker_identifier)?
+	;
+
+checker_port_list
+	: checker_port_item (COMMA checker_port_item)*
+	;
+
+checker_port_item
+	: attribute_instances checker_port_direction? property_formal_type formal_port_identifier variable_dimension* (EQ property_actual_arg)?
+	;
+
+checker_port_direction
+	: KW_INPUT | KW_OUTPUT
+	;
+
+checker_generate_item
+	: loop_generate_construct
+	| conditional_generate_construct
+	| generate_region
+	| elaboration_system_task
+	;
+
+modport_declaration
+	: KW_MODPORT modport_item (COMMA modport_item)* SEMI
+	;
+
+modport_item
+	: modport_identifier LPAREN modport_ports_declaration (COMMA modport_ports_declaration)* RPAREN
+	;
+
+modport_ports_declaration
+	: attribute_instances modport_simple_ports_declaration
+	| attribute_instances modport_tf_ports_declaration
+	| attribute_instances modport_clocking_declaration
+	;
+
+modport_clocking_declaration
+	: KW_CLOCKING clocking_identifier
+	;
+
+modport_simple_ports_declaration
+	: port_direction modport_simple_port (COMMA modport_simple_port)*
+	;
+
+modport_simple_port
+	: port_identifier
+	| DOT port_identifier LPAREN expression? RPAREN
+	;
+
+modport_tf_ports_declaration
+	: import_export modport_tf_port (COMMA modport_tf_port)*
+	;
+
+modport_tf_port
+	: method_prototype
+	| tf_identifier
+	;
+
+import_export
+	: KW_IMPORT | KW_EXPORT
+	;
+
+genvar_declaration
+	: KW_GENVAR list_of_genvar_identifiers SEMI
+	;
+
+list_of_genvar_identifiers
+	: genvar_identifier (COMMA genvar_identifier)*
+	;
+
+parameter_override
+	: KW_DEFPARAM list_of_defparam_assignments
+	;
+
+list_of_defparam_assignments
+	: defparam_assignment (COMMA defparam_assignment)*
+	;
+
+defparam_assignment
+	: hierarchical_parameter_identifier EQ constant_mintypmax_expression
 	;
 
 interface_declaration
@@ -2114,11 +2889,17 @@ identifier_list
 	;
 
 escaped_identifier : simple_identifier ; // TODO
-simple_identifier : ID | KW_STD | KW_NEW | KW_OPTION ;
+
+simple_identifier
+	: ID | KW_STD | KW_NEW | KW_OPTION ;
+
+system_tf_identifier
+	: SYSTEM_ID | DOLLAR_FATAL | DOLLAR_ERROR | DOLLAR_WARNING | DOLLAR_INFO ;
 
 arrayed_identifier : simple_arrayed_identifier | escaped_arrayed_identifier ;
 block_identifier : identifier ;
 cell_identifier : identifier ;
+clocking_identifier : identifier ;
 config_identifier : identifier ;
 escaped_arrayed_identifier : escaped_identifier ( range )? ;
 event_identifier : identifier ;
@@ -2145,10 +2926,12 @@ memory_identifier : identifier ;
 module_identifier : identifier ;
 module_instance_identifier : arrayed_identifier ;
 net_identifier : identifier ;
+net_type_identifier : identifier ;
 output_port_identifier : identifier ;
 parameter_identifier : identifier ;
 port_identifier : identifier ;
 real_identifier : identifier ;
+signal_identifier : identifier ;
 simple_arrayed_identifier : simple_identifier ( range )? ;
 specparam_identifier : identifier ;
 dollar_Identifier : SYSTEM_ID ;
@@ -2173,7 +2956,6 @@ formal_port_identifier : identifier ;
 sequence_identifier : identifier ;
 member_identifier : identifier ;
 hierarchical_tf_identifier : hierarchical_identifier ;
-system_tf_identifier : SYSTEM_ID ;
 tf_identifier : identifier ;
 hierarchical_array_identifier : hierarchical_identifier ;
 index_variable_identifier : identifier ;
@@ -2199,6 +2981,10 @@ function_identifier : identifier ;
 
 hierarchical_identifier
 	: (DOLLAR_ROOT DOT)? (identifier constant_bit_select DOT)* identifier
+	;
+
+hierarchical_parameter_identifier
+	: hierarchical_identifier
 	;
 
 ps_identifier

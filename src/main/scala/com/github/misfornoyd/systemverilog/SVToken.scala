@@ -8,8 +8,8 @@ import generated._
 
 sealed abstract class SVToken (val tokindex:Int, val toktype:Int, val ctx:Context, val line:Int, val col:Int) extends org.antlr.v4.runtime.Token {
 
-  def isError() : Boolean = {
-    toktype != LexerTokens.ERROR
+  def isEOF() : Boolean = {
+    toktype == Token.EOF
   }
 
   override def getChannel() : Int = {
@@ -49,10 +49,10 @@ sealed abstract class SVToken (val tokindex:Int, val toktype:Int, val ctx:Contex
   }
 
   override def toString() : String = {
-    if ( toktype != Token.EOF ){
-      "%s(%s,%d,%d,%s)".format(LexerTokens.tokenNames(toktype), ctx.getShortId(), line, col, getText())
-    }else{
+    if ( isEOF ){
       "%s(%s,%d,%d,%s)".format("EOF", "<root>", line, col, "<eof>")
+    }else{
+      "%s(%s,%d,%d,%s)".format(LexerTokens.tokenNames(toktype), ctx.getShortId(), line, col, getText())
     }
   }
 }
@@ -65,10 +65,10 @@ class SVTokenText(tokindex:Int, toktype:Int, ctx:Context, line:Int, col:Int, val
 
 class SVTokenConst(tokindex:Int, toktype:Int, ctx:Context, line:Int, col:Int) extends SVToken(tokindex, toktype, ctx, line, col) {
   override def getText() : String = {
-    if ( toktype != Token.EOF ){
-      LexerTokens.tokenConstText(toktype)
-    }else{
+    if ( isEOF ){
       "<eof>"
+    }else{
+      LexerTokens.tokenConstText(toktype)
     }
   }
 }

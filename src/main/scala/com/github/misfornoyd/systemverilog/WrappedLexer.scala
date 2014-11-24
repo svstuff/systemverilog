@@ -5,8 +5,6 @@ import java.util.concurrent._
 
 sealed class WrappedLexer(tokens : BlockingQueue[SVToken]) extends TokenSource {
 
-  var factory = CommonTokenFactory.DEFAULT
-
   override def nextToken() : Token = {
     try {
       tokens.take()
@@ -15,12 +13,11 @@ sealed class WrappedLexer(tokens : BlockingQueue[SVToken]) extends TokenSource {
     }
   }
 
-  override def setTokenFactory(factory : TokenFactory){
-    this.factory = factory
+  override def setTokenFactory(factory : TokenFactory[_]){
   }
 
-  override def getTokenFactory() : TokenFactory = {
-    factory
+  override def getTokenFactory() : TokenFactory[_] = {
+    null
   }
 
   override def getSourceName() : String = {
