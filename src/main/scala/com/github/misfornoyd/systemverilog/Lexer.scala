@@ -49,7 +49,6 @@
 package com.github.misfornoyd.systemverilog
 
 import io.Source
-import collection.mutable.Map
 import java.util.concurrent.BlockingQueue
 import java.io.File
 import org.antlr.v4.runtime.Token

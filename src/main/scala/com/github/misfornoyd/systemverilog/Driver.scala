@@ -131,6 +131,13 @@ object Driver {
 
         try {
           val tree = parser.source_text()
+          val writer = new java.io.PrintWriter("svparse.xml")
+          val checker = new Checker(writer)
+          try {
+            checker.visit(tree)
+          } finally {
+            writer.close()
+          }
           logger.info("SUCCESS")
         } catch {
           case e: ParseCancellationException => {

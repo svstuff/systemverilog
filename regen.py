@@ -230,7 +230,7 @@ def regen():
 		f.write("}\n")
 
 	# run ANTLR on the grammar
-	subprocess.check_call("java -Xmx2g -jar lib/antlr-4.4-complete.jar -o {} SVParser.g4".format(javaDir), shell=True)
+	subprocess.check_call("java -Xmx2g -jar lib/antlr-4.4-complete.jar -visitor -o {} SVParser.g4".format(javaDir), shell=True)
 
 if __name__ == "__main__":
 	regen()
