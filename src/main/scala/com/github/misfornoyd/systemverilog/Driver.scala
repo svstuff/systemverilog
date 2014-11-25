@@ -130,14 +130,13 @@ object Driver {
         parser.setBuildParseTree(true)
 
         try {
-          val tree = parser.source_text()
-          val writer = new java.io.PrintWriter("svparse.xml")
-          val checker = new Checker(writer)
-          try {
-            checker.visit(tree)
-          } finally {
-            writer.close()
+
+          var prevtoktype = 0
+          while( prevtoktype != Token.EOF ){
+            parser.root_element()
+            prevtoktype = parser.getCurrentToken().getType()
           }
+
           logger.info("SUCCESS")
         } catch {
           case e: ParseCancellationException => {

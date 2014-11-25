@@ -24,8 +24,8 @@ options {
 }
 
 // TODO this is not according to the LRM grammar
-source_text
-	: (TIMESCALE | package_import_declaration | description)* EOF
+root_element
+	: TIMESCALE | package_import_declaration | description | EOF
 	;
 
 description
