@@ -135,12 +135,39 @@ class_property
 	;
 
 class_method
-	: method_qualifier* task_declaration
-	| method_qualifier* function_declaration
+	: method_qualifier* function_declaration
+	| method_qualifier* task_declaration
 	| KW_PURE KW_VIRTUAL class_item_qualifier* method_prototype SEMI
 	| KW_EXTERN method_qualifier* method_prototype SEMI
-	| method_qualifier* class_constructor_declaration
 	| KW_EXTERN method_qualifier* class_constructor_prototype
+	;
+
+function_declaration
+	: KW_FUNCTION lifetime? function_data_type_or_implicit function_name_qualifier? function_identifier
+	  function_body_declaration
+	  KW_ENDFUNCTION ( COLON function_identifier )?
+	;
+
+function_name_qualifier
+	: interface_identifier DOT
+	| (package_scope parameter_value_assignment?)? (class_identifier parameter_value_assignment? COLON2)+
+	;
+
+function_body_declaration
+	: SEMI
+	  tf_item_declaration*
+	  function_statement_or_null*
+	| LPAREN tf_port_list? RPAREN SEMI
+	  block_item_declaration*
+	  function_statement_or_null*
+	;
+
+function_prototype
+	: KW_FUNCTION function_data_type_or_implicit function_identifier ( LPAREN tf_port_list? RPAREN )?
+	;
+
+function_data_type_or_implicit
+	: data_type_or_void | implicit_data_type
 	;
 
 class_constructor_prototype
@@ -204,14 +231,6 @@ method_prototype
 	| function_prototype
 	;
 
-class_constructor_declaration
-	: KW_FUNCTION class_scope? KW_NEW (LPAREN tf_port_list? RPAREN)? SEMI
-	  block_item_declaration*
-	  (KW_SUPER DOT KW_NEW (LPAREN list_of_arguments RPAREN)? SEMI)?
-	  function_statement_or_null*
-	  KW_ENDFUNCTION (COLON KW_NEW)?
-	;
-
 constraint_declaration
 	: KW_STATIC? KW_CONSTRAINT constraint_identifier constraint_block
 	;
@@ -264,7 +283,6 @@ package_or_generate_item_declaration
 	| dpi_import_export
 	| extern_constraint_declaration
 	| class_declaration
-	| class_constructor_declaration
 	| local_parameter_declaration SEMI
 	| parameter_declaration SEMI
 	| covergroup_declaration
@@ -1830,36 +1848,8 @@ task_body_declaration
 	  KW_ENDTASK ( COLON task_identifier )?
 	;
 
-function_declaration
-	: KW_FUNCTION lifetime? function_data_type_or_implicit function_name_qualifier? function_identifier
-	  function_body_declaration
-	  KW_ENDFUNCTION ( COLON function_identifier )?
-	;
-
 task_name_qualifier
 	: function_name_qualifier
-	;
-
-function_name_qualifier
-	: interface_identifier DOT
-	| (package_scope parameter_value_assignment?)? (class_identifier parameter_value_assignment? COLON2)+
-	;
-
-function_body_declaration
-	: SEMI
-	  tf_item_declaration*
-	  function_statement_or_null*
-	| LPAREN tf_port_list? RPAREN SEMI
-	  block_item_declaration*
-	  function_statement_or_null*
-	;
-
-function_prototype
-	: KW_FUNCTION function_data_type_or_implicit function_identifier ( LPAREN tf_port_list? RPAREN )?
-	;
-
-function_data_type_or_implicit
-	: data_type_or_void | implicit_data_type
 	;
 
 data_type_or_void
