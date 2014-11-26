@@ -6,6 +6,7 @@ import collection.JavaConversions._
 import org.antlr.v4.runtime._
 import org.antlr.v4.runtime.tree._
 import org.antlr.v4.runtime.misc._
+import org.antlr.v4.runtime.atn._
 
 import java.util.concurrent._
 import java.io.File
@@ -128,6 +129,10 @@ object Driver {
         parser.setErrorHandler(new BailErrorStrategy())
         parser.setTrace( debugOptions.contains("trace") )
         parser.setBuildParseTree(true)
+
+        // TODO identify performance issues in grammar
+        parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
+        parser.addErrorListener(new DiagnosticErrorListener())
 
         try {
 

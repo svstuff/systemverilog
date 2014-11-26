@@ -29,13 +29,12 @@ root_element
 	;
 
 description
-	: module_declaration
+	: attribute_instances package_item
+	| module_declaration
 	| interface_declaration
 	| program_declaration
 	| package_declaration
-	| attribute_instances package_item
 	| attribute_instances bind_directive
-	| class_declaration // TODO this is not according to the LRM grammar
 	// TODO udp_declaration
 	// TODO config_declaration
 	;
@@ -1796,8 +1795,8 @@ dpi_import_export
 	;
 
 dpi_spec_string
-	: {_input.LT(1).getText().matches("DPI-C")}? LIT_STRING
-	| {_input.LT(1).getText().matches("DPI")}? LIT_STRING
+	: LIT_STRING_DPI_C
+	| LIT_STRING_DPI
 	;
 
 dpi_function_import_property
@@ -2886,7 +2885,8 @@ unsigned_number : number ;
 
 identifier
 	: simple_identifier
-	| escaped_identifier
+	// TODO escaped_identifier disabled for now because it isn't used much and causes an ambiguity
+	// escaped_identifier
 	;
 
 identifier_list

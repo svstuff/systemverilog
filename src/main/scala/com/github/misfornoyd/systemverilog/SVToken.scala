@@ -52,27 +52,39 @@ sealed abstract class SVToken (val tokindex:Int, val toktype:Int, val ctx:Contex
     line
   }
 
+  def getTextRaw() : String;
+
   override def toString() : String = {
     if ( isEOF ){
       "%s(%s,%d,%d,%s)".format("EOF", "<root>", line, col, "<eof>")
     }else{
-      "%s(%s,%d,%d,%s)".format(LexerTokens.tokenNames(toktype), ctx.getShortId(), line, col, getText())
+      "%s(%s,%d,%d,%s)".format(LexerTokens.tokenNames(toktype), ctx.getShortId(), line, col, getTextRaw())
     }
   }
 }
 
 class SVTokenText(tokindex:Int, toktype:Int, ctx:Context, line:Int, col:Int, val text:String) extends SVToken(tokindex, toktype, ctx, line, col) {
-  override def getText() : String = {
+  override def getTextRaw() : String = {
     text
+  }
+  override def getText() : String = {
+    text + " "
   }
 }
 
 class SVTokenConst(tokindex:Int, toktype:Int, ctx:Context, line:Int, col:Int) extends SVToken(tokindex, toktype, ctx, line, col) {
-  override def getText() : String = {
+  override def getTextRaw() : String = {
     if ( isEOF ){
       "<eof>"
     }else{
       LexerTokens.tokenConstText(toktype)
+    }
+  }
+  override def getText() : String = {
+    if ( isEOF ){
+      " <eof> "
+    }else{
+      LexerTokens.tokenConstText(toktype) + " "
     }
   }
 }

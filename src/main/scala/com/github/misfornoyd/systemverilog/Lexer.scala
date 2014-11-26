@@ -604,7 +604,17 @@ sealed class Lexer(
       } else if ( c == '"' ) {
         source.drop(1)
         val toktext = scanStringLiteral( source )
-        produce( LexerTokens.LIT_STRING, line, col, toktext )
+        if ( toktext.startsWith("DPI") ){
+          if ( toktext == "DPI-C" ){
+            produce( LexerTokens.LIT_STRING_DPI_C, line, col, toktext )
+          } else if ( toktext == "DPI" ) {
+            produce( LexerTokens.LIT_STRING_DPI, line, col, toktext )
+          } else {
+            produce( LexerTokens.LIT_STRING, line, col, toktext )
+          }
+        } else {
+          produce( LexerTokens.LIT_STRING, line, col, toktext )
+        }
       } else if ( c == '/' ) {
         // check for comment
         source.drop(1)

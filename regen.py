@@ -31,6 +31,8 @@ tokens_special = [
 	# error token, produced when the lexer finds an invalid token
 	("ERROR",               ""),
 	("LIT_STRING",          "string-literal"),
+	("LIT_STRING_DPI",      "DPI"),
+	("LIT_STRING_DPI_C",    "DPI-C"),
 	("LIT_NUM",             "number-literal"),
 	("LIT_UNBASED_UNSIZED", "unbased-unsized-literal"),
 	("LIT_TIME",            "time-literal"),
