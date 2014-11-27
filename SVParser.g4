@@ -3003,7 +3003,7 @@ ps_or_hierarchical_sequence_identifier
 	;
 
 ps_or_hierarchical_tf_identifier
-	: package_scope? tf_identifier
+	: package_scope tf_identifier
 	| hierarchical_tf_identifier
 	;
 
