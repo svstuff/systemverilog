@@ -1675,10 +1675,17 @@ array_manipulation_call
 	  (KW_WITH LPAREN expression RPAREN)?
 	;
 
-// TODO: scope_randomize disallows KW_NULL and identifier_list after KW_WITH:
-// scope_randomize ::= [ std:: ] randomize ( [ variable_identifier_list ] ) [ with constraint_block ]
 randomize_call
-	: (KW_STD COLON2)? KW_RANDOMIZE attribute_instances
+	: scope_randomize_call
+	| method_randomize_call
+	;
+
+scope_randomize_call
+	: (KW_STD COLON2)? KW_RANDOMIZE LPAREN variable_identifier_list RPAREN (KW_WITH constraint_block)?
+	;
+
+method_randomize_call
+	: method_call_root DOT KW_RANDOMIZE attribute_instances
 	  (LPAREN (randomize_param_list | KW_NULL)? RPAREN)?
 	  (KW_WITH (LPAREN identifier_list? RPAREN)? constraint_block)?
 	  ;
@@ -2746,11 +2753,12 @@ module_path_primary
 // TODO
 primary
 	: primary_literal
-	| identifier_primary
+	| primary_identifier_or_call
+	| randomize_call
+	| system_tf_call
 	| empty_queue
 	| concatenation (LSQUARE range_expression RSQUARE)?
 	| multiple_concatenation (LSQUARE range_expression RSQUARE)?
-	| function_subroutine_call
 	| LPAREN mintypmax_expression RPAREN
 	| cast
 	| assignment_pattern_expression
@@ -2762,7 +2770,13 @@ primary
 	;
 
 primary_literal
-	: number | LIT_TIME | LIT_UNBASED_UNSIZED | LIT_STRING
+	: number | LIT_TIME | LIT_UNBASED_UNSIZED | string_literal
+	;
+
+string_literal
+	: LIT_STRING
+	| LIT_STRING_DPI_C
+	| LIT_STRING_DPI
 	;
 
 cast
@@ -2773,7 +2787,12 @@ casting_type
 	: simple_type | constant_primary | signing | KW_STRING | KW_CONST
 	;
 
-identifier_primary
+primary_identifier_or_call
+	: primary_identifier LPAREN list_of_arguments RPAREN # primary_call
+	| primary_identifier # primary_id_or_call
+	;
+
+primary_identifier
 	: (class_qualifier | package_scope)? hierarchical_identifier select
 	;
 
@@ -2807,7 +2826,7 @@ class_qualifier
 // method call root can be an expression
 // See also: http://www.eda.org/svdb/view.php?id=1480
 primary_call_root
-	: identifier_primary attribute_instances (LPAREN list_of_arguments RPAREN)?
+	: (class_qualifier | package_scope)? hierarchical_identifier select attribute_instances (LPAREN list_of_arguments RPAREN)?
 	;
 
 method_call_root

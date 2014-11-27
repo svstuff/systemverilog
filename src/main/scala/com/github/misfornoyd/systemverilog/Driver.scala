@@ -160,8 +160,8 @@ object Driver {
       }
       def reportError(e: RecognitionException, tok: SVToken){
         val sb = new StringBuilder
-        val toktext = tok.getText()
-        sb ++= "Parsing failed. Found: %s".format(toktext)
+        val toktext = tok.getTextRaw()
+        sb ++= "Parsing failed. Found:%s".format(toktext)
         if ( tok.isEOF ) {
             sb ++= "\n"
         }else{
