@@ -1680,8 +1680,9 @@ randomize_call
 	| method_randomize_call
 	;
 
+// TODO: should this also use randomize_param_list instead of variable_identifier_list?
 scope_randomize_call
-	: (KW_STD COLON2)? KW_RANDOMIZE LPAREN variable_identifier_list RPAREN (KW_WITH constraint_block)?
+	: (KW_STD COLON2)? KW_RANDOMIZE LPAREN variable_identifier_list? RPAREN (KW_WITH constraint_block)?
 	;
 
 method_randomize_call
