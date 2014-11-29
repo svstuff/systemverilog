@@ -1,0 +1,5 @@
+.gradle
+*.pyc
+*.log
+generated/
+build/
