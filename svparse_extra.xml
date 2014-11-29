@@ -1,0 +1,5 @@
+<project>
+  <logLevel>DEBUG</logLevel>
+  <debug>trace</debug>
+  <debug>detect_ambiguations</debug>
+</project>

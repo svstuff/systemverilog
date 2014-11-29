@@ -3,8 +3,9 @@ virtual class lower extends uvm_component implements yoyo_uvm_sucks;
     super.new(name, parent);
   endfunction
   function option (string tulle);
-  	a = b;
-  	foo();
+    a = b;
+    foo();
+    a = b;
   endfunction
   function foo (string bar);
 

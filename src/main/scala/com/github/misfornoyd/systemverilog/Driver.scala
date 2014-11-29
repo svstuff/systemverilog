@@ -77,6 +77,7 @@ object Driver {
     val lexerOnly = debugOptions.contains("lexer_only")
     val skipTokenEnqueue = lexerOnly
     val printTokens = debugOptions.contains("print_tokens")
+    val detectAmbiguations = debugOptions.contains("detect_ambiguations")
 
     // get the directory of the project file and prefix this on all _relative_ file paths
     val dirpre = new File(new File(projectPath).getAbsolutePath()).getParentFile().toString
@@ -130,9 +131,10 @@ object Driver {
         parser.setTrace( debugOptions.contains("trace") )
         parser.setBuildParseTree(true)
 
-        // TODO identify performance issues in grammar
-        parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
-        parser.addErrorListener(new DiagnosticErrorListener())
+        if ( detectAmbiguations ){
+          parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
+          parser.addErrorListener(new DiagnosticErrorListener())
+        }
 
         try {
 

@@ -2832,12 +2832,12 @@ casting_type
 	;
 
 primary_identifier_or_call
-	: primary_identifier LPAREN list_of_arguments RPAREN # primary_call
-	| primary_identifier # primary_id_or_call
+	: primary_identifier (LPAREN list_of_arguments RPAREN)?
 	;
 
 primary_identifier
-	: (class_qualifier | package_scope)? hierarchical_identifier select
+	: class_qualifier? hierarchical_identifier select
+	| DOLLAR_UNIT COLON2 hierarchical_identifier select
 	;
 
 select
