@@ -2491,10 +2491,8 @@ data_type
 	| KW_STRING
 	| KW_CHANDLE
 	| KW_VIRTUAL KW_INTERFACE? interface_identifier parameter_value_assignment? (DOT modport_identifier)?
-	| (class_scope | package_scope)? type_identifier packed_dimension*
 	| class_type
 	| KW_EVENT
-	| ps_covergroup_identifier
 	| type_reference
 	;
 
@@ -2857,7 +2855,7 @@ class_scope
 	;
 
 class_type
-	: ps_class_identifier parameter_value_assignment? (COLON2 class_identifier parameter_value_assignment?)*
+	: ps_class_identifier parameter_value_assignment? (COLON2 class_identifier parameter_value_assignment?)* packed_dimension*
 	;
 
 ps_class_identifier
