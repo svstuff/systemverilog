@@ -142,6 +142,37 @@ class_method
 	| KW_EXTERN method_qualifier* class_constructor_prototype
 	;
 
+task_declaration
+	: KW_TASK lifetime? task_name_qualifier? task_identifier
+	  task_body_declaration
+	  KW_ENDTASK ( COLON task_identifier )?
+	;
+
+task_body_declaration
+	: SEMI task_body_no_arglist
+	| LPAREN tf_port_list? RPAREN SEMI task_body_arglist
+	;
+
+// Parameters specified in body instead of in parenthesized list
+// NOTE: see comment in function_body_arglist.
+task_body_no_arglist
+	: (tf_item_declaration | statement_or_null)*
+	;
+
+// Parameters specified in parenthesized list
+// NOTE: see comment in function_body_arglist.
+task_body_arglist
+	: (block_item_declaration | statement_or_null)*
+	;
+
+task_name_qualifier
+	: function_name_qualifier
+	;
+
+// [LRM]
+// When the implicit syntax is used, the return type is the same as if the implicit syntax had been
+// immediately preceded by the logic keyword. In particular, the implicit syntax can be empty, in which case
+// the return type is a logic scalar.
 function_declaration
 	: KW_FUNCTION lifetime? function_data_type_or_implicit function_name_qualifier? function_identifier
 	  function_body_declaration
@@ -153,13 +184,53 @@ function_name_qualifier
 	| (package_scope parameter_value_assignment?)? (class_identifier parameter_value_assignment? COLON2)+
 	;
 
+// [LRM]
+// A function declaration has the formal arguments either in parentheses (like ANSI C) or in declarations and
+// directions.
 function_body_declaration
-	: SEMI
-	  tf_item_declaration*
-	  function_statement_or_null*
-	| LPAREN tf_port_list? RPAREN SEMI
-	  block_item_declaration*
-	  function_statement_or_null*
+	: SEMI function_body_no_arglist
+	| LPAREN tf_port_list? RPAREN SEMI function_body_arglist
+	;
+
+// Parameters specified in body instead of in parenthesized list
+// NOTE: see comment in function_body_arglist.
+function_body_no_arglist
+	: (tf_item_declaration | function_statement_or_null)*
+	;
+
+// TODO this rule is specified thusly in the LRM grammar:
+//   function_body_arglist : block_item_declaration* function_statement_or_null*
+// This is not context free, because e.g. "a = b;" can be either a data_declaration (with implicit type)
+// or a statement. This is for now handled by relaxing the grammar to allow interleaved declarations and
+// statements. It is easier to check this requirement in the semantic phase.
+function_body_arglist
+	: (block_item_declaration | function_statement_or_null)*
+	;
+
+tf_item_declaration
+	: block_item_declaration
+	| tf_port_declaration
+	;
+
+tf_port_declaration
+	: attribute_instances tf_port_direction KW_VAR? data_type_or_implicit list_of_tf_variable_identifiers SEMI
+	;
+
+block_item_declaration
+	: attribute_instances data_declaration
+	| attribute_instances local_parameter_declaration SEMI
+	| attribute_instances parameter_declaration SEMI
+	| attribute_instances overload_declaration
+	| attribute_instances let_declaration
+	;
+
+// TODO make sure we treat "a = b;" as an assignment statement rather than a vardecl with implicit type.
+// Otherwise we have an ambiguity between vardecl and assignment statement.
+variable_declaration
+	: KW_CONST KW_VAR? lifetime? data_type_or_implicit list_of_variable_decl_assignments SEMI
+	| KW_VAR lifetime? data_type_or_implicit list_of_variable_decl_assignments SEMI
+	| lifetime data_type_or_implicit list_of_variable_decl_assignments SEMI
+	| data_type list_of_variable_decl_assignments SEMI
 	;
 
 function_prototype
@@ -768,7 +839,7 @@ bins_keyword
 	;
 
 data_declaration
-	: KW_CONST? KW_VAR? lifetime? data_type_or_implicit list_of_variable_decl_assignments SEMI
+	: variable_declaration
 	| type_declaration
 	| package_import_declaration
 	| net_type_declaration
@@ -796,19 +867,6 @@ class_new
 
 dynamic_array_new
 	: KW_NEW LSQUARE expression RSQUARE (LPAREN expression RPAREN)?
-	;
-
-tf_item_declaration
-	: block_item_declaration
-	| tf_port_declaration
-	;
-
-block_item_declaration
-	: attribute_instances data_declaration
-	| attribute_instances local_parameter_declaration SEMI
-	| attribute_instances parameter_declaration SEMI
-	| attribute_instances overload_declaration
-	| attribute_instances let_declaration
 	;
 
 let_declaration
@@ -1672,6 +1730,7 @@ array_manipulation_call
 
 array_method_name
 	: KW_UNIQUE | KW_AND | KW_OR | KW_XOR
+	// TODO some of the array builtins allow/disallow the 'with' clause. Currently too relaxed grammar.
 	| KW_FIND
 	| KW_FIND_INDEX
 	| KW_FIND_FIRST
@@ -1850,25 +1909,6 @@ dpi_task_proto
 	: task_prototype
 	;
 
-task_declaration
-	: KW_TASK lifetime? task_name_qualifier? task_identifier task_body_declaration
-	;
-
-task_body_declaration
-	: SEMI
-	  tf_item_declaration*
-	  statement_or_null*
-	  KW_ENDTASK ( COLON task_identifier )?
-	| LPAREN tf_port_list? RPAREN SEMI
-	  block_item_declaration*
-	  statement_or_null*
-	  KW_ENDTASK ( COLON task_identifier )?
-	;
-
-task_name_qualifier
-	: function_name_qualifier
-	;
-
 data_type_or_void
 	: data_type | KW_VOID
 	;
@@ -1894,10 +1934,6 @@ tf_port_item
 tf_port_direction
 	: port_direction
 	| KW_CONST KW_REF
-	;
-
-tf_port_declaration
-	: attribute_instances tf_port_direction KW_VAR? data_type_or_implicit list_of_tf_variable_identifiers SEMI
 	;
 
 task_prototype
