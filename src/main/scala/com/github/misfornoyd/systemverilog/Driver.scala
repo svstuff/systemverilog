@@ -233,6 +233,13 @@ object Driver {
 
   def printContextChain(sb:StringBuilder, ctx:Context, line:Int, col:Int){
     sb ++= "In: %s(%d,%d)\n".format(ctx.where(), line, col)
+    val what = ctx.what()
+    if ( !what.isEmpty ){
+      sb ++= "Context:\n"
+      sb ++= what
+      sb ++= "\n"
+    }
+
     var parent = ctx.parent
     var child = ctx
     while ( parent != null ){

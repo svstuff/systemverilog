@@ -18,6 +18,7 @@ TODO: currently skipping a lot of stuff inside modules/classes/interfaces/packag
 parser grammar SVParser;
 options {
   tokenVocab=SVLexer;
+  TokenLabelType=SVToken;
 }
 @header {
   package com.github.misfornoyd.systemverilog.generated;
@@ -2536,9 +2537,9 @@ data_type
   | KW_STRING
   | KW_CHANDLE
   | KW_VIRTUAL KW_INTERFACE? interface_identifier parameter_value_assignment? (DOT modport_identifier)?
-  | class_type
   | KW_EVENT
   | type_reference
+  | class_type
   ;
 
 struct_union
@@ -2583,7 +2584,12 @@ ordered_parameter_assignment
   ;
 
 named_parameter_assignment
-  : DOT parameter_identifier LPAREN ( param_expression )? RPAREN
+  : DOT parameter_identifier LPAREN param_expression? RPAREN
+  ;
+
+param_expression
+  : data_type
+  | mintypmax_expression
   ;
 
 signing
@@ -2708,11 +2714,6 @@ constant_range_expression
 
 dimension_constant_expression
   : constant_expression
-  ;
-
-param_expression
-  : mintypmax_expression
-  | data_type
   ;
 
 expression
