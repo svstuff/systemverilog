@@ -604,6 +604,8 @@ sealed class Lexer(
       } else if ( c == '"' ) {
         source.drop(1)
         val toktext = scanStringLiteral( source )
+        // TODO make a map of special string literals, similar to the keyword handling.
+        // Special string literals are those that appear in the grammar in the LRM.
         if ( toktext.startsWith("DPI") ){
           if ( toktext == "DPI-C" ){
             produce( LexerTokens.LIT_STRING_DPI_C, line, col, toktext )

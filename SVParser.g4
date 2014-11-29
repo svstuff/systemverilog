@@ -1664,15 +1664,29 @@ function_subroutine_call
 	: subroutine_call
 	;
 
-built_in_method_call
-	: array_manipulation_call
-	| randomize_call
-	;
-
 array_manipulation_call
 	: array_method_name attribute_instances
 	  (LPAREN list_of_arguments RPAREN)?
 	  (KW_WITH LPAREN expression RPAREN)?
+	;
+
+array_method_name
+	: KW_UNIQUE | KW_AND | KW_OR | KW_XOR
+	| KW_FIND
+	| KW_FIND_INDEX
+	| KW_FIND_FIRST
+	| KW_FIND_FIRST_INDEX
+	| KW_FIND_LAST
+	| KW_FIND_LAST_INDEX
+	| KW_MIN
+	| KW_MAX
+	| KW_UNIQUE_INDEX
+	| KW_REVERSE
+	| KW_SORT
+	| KW_RSORT
+	| KW_SHUFFLE
+	| KW_SUM
+	| KW_PRODUCT
 	;
 
 randomize_call
@@ -1680,7 +1694,6 @@ randomize_call
 	| method_randomize_call
 	;
 
-// TODO: should this also use randomize_param_list instead of variable_identifier_list?
 scope_randomize_call
 	: (KW_STD COLON2)? KW_RANDOMIZE LPAREN variable_identifier_list? RPAREN (KW_WITH constraint_block)?
 	;
@@ -1694,10 +1707,6 @@ method_randomize_call
 // NOTE: the LRM seems to be wrong on the variable_identifier_list, since this disallows e.g. "this.varname".
 randomize_param_list
 	: expression (COMMA expression)*
-	;
-
-array_method_name
-	: method_identifier | KW_UNIQUE | KW_AND | KW_OR | KW_XOR
 	;
 
 cycle_delay_range
@@ -2838,7 +2847,8 @@ method_call
 
 method_call_body
 	: method_identifier attribute_instances (LPAREN list_of_arguments RPAREN)?
-	| built_in_method_call
+	| array_manipulation_call
+	| randomize_call
 	;
 
 // TODO static method call root can be a primary
@@ -2906,7 +2916,26 @@ escaped_identifier
 	;
 
 simple_identifier
-	: ID | KW_STD | KW_NEW | KW_OPTION
+	: ID
+	// Special tokens that are not really keywords but tokenized to avoid semantic predicates in the grammar.
+	| KW_STD
+	| KW_NEW
+	| KW_OPTION
+	| KW_FIND
+	| KW_FIND_INDEX
+	| KW_FIND_FIRST
+	| KW_FIND_FIRST_INDEX
+	| KW_FIND_LAST
+	| KW_FIND_LAST_INDEX
+	| KW_MIN
+	| KW_MAX
+	| KW_UNIQUE_INDEX
+	| KW_REVERSE
+	| KW_SORT
+	| KW_RSORT
+	| KW_SHUFFLE
+	| KW_SUM
+	| KW_PRODUCT
 	;
 
 system_tf_identifier

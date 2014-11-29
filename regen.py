@@ -143,11 +143,9 @@ tokens_operators = [
 ]
 
 def get_keyword_tokens():
-	with open('sv_keywords.txt', 'r') as f:
-		lines = f.readlines()
+	import sv_keywords
 	tokens = []
-	for line in lines:
-		kw = line.strip()
+	for kw in sv_keywords.keywords:
 		tokname = "KW_{}".format(kw.upper())
 		tokens.append( (tokname, kw) )
 	return tokens
