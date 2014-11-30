@@ -2902,7 +2902,11 @@ class_scope
   ;
 
 class_type
-  : ps_class_identifier parameter_value_assignment? (COLON2 class_identifier parameter_value_assignment?)* packed_dimension*
+  : class_type_base (COLON2 class_identifier parameter_value_assignment?)* packed_dimension*
+  ;
+
+class_type_base
+  : (DOLLAR_UNIT COLON2)? class_identifier parameter_value_assignment?
   ;
 
 ps_class_identifier
