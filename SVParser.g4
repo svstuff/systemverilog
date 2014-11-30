@@ -2900,8 +2900,6 @@ method_call
 
 method_call_body
   : method_identifier attribute_instances (LPAREN list_of_arguments RPAREN)?
-  | array_manipulation_call
-  | randomize_call
   ;
 
 // TODO static method call root can be a primary

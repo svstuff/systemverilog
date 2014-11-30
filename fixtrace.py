@@ -21,6 +21,6 @@ for line in sys.stdin:
 
   if words[0] == 'enter':
     nesting += 1
-    print '. ' * nesting, ' '.join(words[1:])
+    print '| ' * nesting, ' '.join(words[1:])
   else:
-    print '. ' * nesting, '+', ' '.join(words[0:])
+    print '| ' * nesting, '+', ' '.join(words[0:])
