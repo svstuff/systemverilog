@@ -2559,9 +2559,9 @@ simple_type
   ;
 
 enum_base_type
-  : integer_atom_type ( signing )?
-  | integer_vector_type ( signing )? ( packed_dimension )?
-  | type_identifier ( packed_dimension )?
+  : integer_atom_type signing?
+  | integer_vector_type signing? packed_dimension?
+  | type_identifier packed_dimension?
   ;
 
 enum_name_declaration
@@ -2571,7 +2571,7 @@ enum_name_declaration
   ;
 
 parameter_value_assignment
-  : HASH LPAREN (list_of_parameter_assignments)? RPAREN
+  : HASH LPAREN list_of_parameter_assignments? RPAREN
   ;
 
 list_of_parameter_assignments
