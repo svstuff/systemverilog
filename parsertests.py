@@ -46,13 +46,16 @@ def detected_antlr_warnings(testout):
   return "reportAmbiguity" in testout
 
 def main():
+  n_not_passing = 0
   p = Pool(4)
   for result in p.imap_unordered(run_test, [f for f in glob.glob("parsertests/*") if os.path.isdir(f)]):
     status = statuscolor[result.status] + result.status + bcolors.ENDC
     if result.status != 'PASS':
+      n_not_passing += 1
       print "{}: {} - {}".format(status, result.testname, result.testout)
     else:
       print "{}: {}".format(status, result.testname)
+  print "Summary: {} tests did not pass cleanly".format(n_not_passing)
 
 if __name__ == "__main__":
   sys.exit(main())
