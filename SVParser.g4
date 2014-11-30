@@ -52,7 +52,7 @@ bind_target_scope
   ;
 
 bind_target_instance
-  : hierarchical_identifier constant_bit_select
+  : hierarchical_identifier constant_bit_select*
   ;
 
 bind_target_instance_list
@@ -317,16 +317,11 @@ list_of_arguments
   ;
 
 program_declaration
-  : program_nonansi_header timeunits_declaration? program_body KW_ENDPROGRAM (COLON program_identifier)?
-  | program_ansi_header timeunits_declaration? program_body KW_ENDPROGRAM (COLON program_identifier)?
-  | attribute_instances KW_PROGRAM program_identifier LPAREN DOT MUL RPAREN SEMI timeunits_declaration? program_body KW_ENDPROGRAM (COLON program_identifier)?
+  : program_nonansi_header timeunits_declaration? program_item* KW_ENDPROGRAM (COLON program_identifier)?
+  | program_ansi_header timeunits_declaration? non_port_program_item* KW_ENDPROGRAM (COLON program_identifier)?
+  | attribute_instances KW_PROGRAM program_identifier LPAREN DOT MUL RPAREN SEMI timeunits_declaration? program_item* KW_ENDPROGRAM (COLON program_identifier)?
   | KW_EXTERN program_nonansi_header
   | KW_EXTERN program_ansi_header
-  ;
-
-// TODO skip program contents for now.
-program_body
-  : (~KW_ENDPROGRAM)*?
   ;
 
 program_nonansi_header
@@ -335,6 +330,26 @@ program_nonansi_header
 
 program_ansi_header
   : attribute_instances KW_PROGRAM lifetime? program_identifier package_import_declaration* parameter_port_list? list_of_port_declarations? SEMI
+  ;
+
+program_item
+  : port_declaration SEMI
+  | non_port_program_item
+  ;
+
+non_port_program_item
+  : attribute_instances continuous_assign
+  | attribute_instances module_or_generate_item_declaration
+  | attribute_instances initial_construct
+  | attribute_instances final_construct
+  | attribute_instances concurrent_assertion_item
+  | timeunits_declaration
+  | program_generate_item
+  ;
+
+program_generate_item
+  : loop_generate_construct
+  | conditional_generate_construct
   ;
 
 package_declaration
@@ -2352,16 +2367,16 @@ interface_ansi_header
 
 type_declaration
   : KW_TYPEDEF data_type type_identifier variable_dimension* SEMI
-  | KW_TYPEDEF interface_instance_identifier constant_bit_select DOT type_identifier type_identifier SEMI
+  | KW_TYPEDEF interface_instance_identifier constant_bit_select* DOT type_identifier type_identifier SEMI
   | KW_TYPEDEF ( KW_ENUM | KW_STRUCT | KW_UNION | KW_CLASS | KW_INTERFACE KW_CLASS )? type_identifier SEMI
   ;
 
 constant_bit_select
-  : ( LSQUARE constant_expression RSQUARE )*
+  : LSQUARE constant_expression RSQUARE
   ;
 
 constant_select
-  : ( ( DOT member_identifier constant_bit_select)* DOT member_identifier)? constant_bit_select
+  : ( ( DOT member_identifier constant_bit_select*)* DOT member_identifier)? constant_bit_select*
     (LSQUARE constant_part_select_range RSQUARE)?
   ;
 
@@ -3059,7 +3074,7 @@ method_identifier : identifier ;
 function_identifier : identifier ;
 
 hierarchical_identifier
-  : (DOLLAR_ROOT DOT)? identifier (constant_bit_select DOT identifier)*
+  : (DOLLAR_ROOT DOT)? identifier (constant_bit_select* DOT identifier)*
   ;
 
 hierarchical_parameter_identifier
