@@ -872,8 +872,8 @@ list_of_variable_decl_assignments
 
 variable_decl_assignment
   : variable_identifier variable_dimension* (EQ expression)?
+  | class_variable_identifier EQ KW_NEW expression
   | dynamic_array_variable_identifier unsized_dimension variable_dimension* (EQ dynamic_array_new)?
-  | class_variable_identifier (EQ class_new)?
   ;
 
 class_new
