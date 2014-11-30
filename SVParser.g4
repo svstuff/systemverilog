@@ -1437,7 +1437,7 @@ final_construct
 blocking_assignment
   : variable_lvalue EQ delay_or_event_control expression
   | nonrange_variable_lvalue EQ dynamic_array_new
-  | ( (implicit_class_handle DOT) | class_scope | package_scope )? hierarchical_variable_identifier
+  | ( (implicit_class_handle DOT) | class_scope | package_scope )? hierarchical_identifier
     select EQ class_new
   | operator_assignment
   ;
@@ -1632,7 +1632,7 @@ net_lvalue
   ;
 
 variable_lvalue
-  : (implicit_class_handle DOT | package_scope)? hierarchical_variable_identifier select
+  : (implicit_class_handle DOT | package_scope)? hierarchical_identifier select
   | LCURLY variable_lvalue (COMMA variable_lvalue)* RCURLY
   | assignment_pattern_expression_type? assignment_pattern_variable_lvalue
   | streaming_concatenation
@@ -1690,7 +1690,7 @@ assignment_pattern_variable_lvalue
   ;
 
 nonrange_variable_lvalue
-  : (implicit_class_handle DOT | package_scope)? hierarchical_variable_identifier nonrange_select
+  : (implicit_class_handle DOT | package_scope)? hierarchical_identifier nonrange_select
   ;
 
 constant_function_call
@@ -1833,7 +1833,7 @@ dist_weight
   ;
 
 event_control
-  : AT_SIGN hierarchical_event_identifier
+  : AT_SIGN hierarchical_identifier
   | AT_SIGN LPAREN event_expression RPAREN
   | AT_SIGN MUL
   | AT_SIGN LPAREN MUL RPAREN
@@ -1876,10 +1876,11 @@ event_trigger
   | SUB_GT2 delay_or_event_control? expression SEMI
   ;
 
+// TODO clearly ambiguous
 disable_statement
-  : KW_DISABLE hierarchical_task_identifier SEMI
-  | KW_DISABLE hierarchical_block_identifier SEMI
-  | KW_DISABLE KW_FORK SEMI
+  : KW_DISABLE hierarchical_identifier SEMI # disable_statement_task_identifier
+  | KW_DISABLE hierarchical_identifier SEMI # disable_statement_block_identifier
+  | KW_DISABLE KW_FORK SEMI                 # disable_statement_fork
   ;
 
 dpi_import_export
@@ -2668,10 +2669,10 @@ empty_queue : LCURLY RCURLY ;
 net_concatenation : LCURLY net_concatenation_value ( COMMA net_concatenation_value )* RCURLY ;
 
 net_concatenation_value
-  : hierarchical_net_identifier
-  | hierarchical_net_identifier LSQUARE expression RSQUARE ( LSQUARE expression RSQUARE )*
-  | hierarchical_net_identifier LSQUARE expression RSQUARE ( LSQUARE expression RSQUARE )* LSQUARE range_expression RSQUARE
-  | hierarchical_net_identifier LSQUARE range_expression RSQUARE
+  : hierarchical_identifier
+  | hierarchical_identifier LSQUARE expression RSQUARE ( LSQUARE expression RSQUARE )*
+  | hierarchical_identifier LSQUARE expression RSQUARE ( LSQUARE expression RSQUARE )* LSQUARE range_expression RSQUARE
+  | hierarchical_identifier LSQUARE range_expression RSQUARE
   | net_concatenation
   ;
 
@@ -2680,10 +2681,10 @@ variable_concatenation
   ;
 
 variable_concatenation_value
-  : hierarchical_variable_identifier
-  | hierarchical_variable_identifier LSQUARE expression RSQUARE ( LSQUARE expression RSQUARE )*
-  | hierarchical_variable_identifier LSQUARE expression RSQUARE ( LSQUARE expression RSQUARE )* LSQUARE range_expression RSQUARE
-  | hierarchical_variable_identifier LSQUARE range_expression RSQUARE
+  : hierarchical_identifier
+  | hierarchical_identifier LSQUARE expression RSQUARE ( LSQUARE expression RSQUARE )*
+  | hierarchical_identifier LSQUARE expression RSQUARE ( LSQUARE expression RSQUARE )* LSQUARE range_expression RSQUARE
+  | hierarchical_identifier LSQUARE range_expression RSQUARE
   | variable_concatenation
   ;
 
@@ -2994,14 +2995,6 @@ gate_instance_identifier : arrayed_identifier ;
 generate_block_identifier : identifier ;
 genvar_function_identifier : identifier ;
 genvar_identifier : identifier ;
-hierarchical_block_identifier : hierarchical_identifier ;
-hierarchical_event_identifier : hierarchical_identifier ;
-hierarchical_function_identifier : hierarchical_identifier ;
-hierarchical_net_identifier : hierarchical_identifier ;
-hierarchical_variable_identifier : hierarchical_identifier ;
-hierarchical_task_identifier : hierarchical_identifier ;
-hierarchical_sequence_identifier : hierarchical_identifier ;
-hierarchical_property_identifier : hierarchical_identifier ;
 inout_port_identifier : identifier ;
 input_port_identifier : identifier ;
 instance_identifier : identifier ;
@@ -3087,7 +3080,7 @@ ps_or_hierarchical_array_identifier
 
 ps_or_hierarchical_sequence_identifier
   : package_scope? sequence_identifier
-  | hierarchical_sequence_identifier
+  | hierarchical_identifier
   ;
 
 ps_or_hierarchical_tf_identifier
@@ -3097,12 +3090,12 @@ ps_or_hierarchical_tf_identifier
 
 ps_or_hierarchical_net_identifier
   : package_scope? net_identifier
-  | hierarchical_net_identifier
+  | hierarchical_identifier
   ;
 
 ps_or_hierarchical_property_identifier
   : package_scope? property_identifier
-  | hierarchical_property_identifier
+  | hierarchical_identifier
   ;
 
 ps_parameter_identifier
