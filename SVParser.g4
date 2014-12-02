@@ -1662,23 +1662,16 @@ pattern
   | APOSTROPHE LCURLY member_identifier COLON pattern (COMMA member_identifier COLON pattern)* RCURLY
   ;
 
+// TODO [LRM] has some additional rules:
+// | APOSTROPHE LCURLY structure_pattern_key COLON expression (COMMA structure_pattern_key COLON expression)* RCURLY
 assignment_pattern
   : APOSTROPHE LCURLY expression (COMMA expression)* RCURLY
-  | APOSTROPHE LCURLY structure_pattern_key COLON expression (COMMA structure_pattern_key COLON expression)* RCURLY
-  | APOSTROPHE LCURLY array_pattern_key COLON expression (COMMA array_pattern_key COLON expression)* RCURLY
   | APOSTROPHE LCURLY constant_expression LCURLY expression (COMMA expression)* RCURLY RCURLY
-  ;
-
-structure_pattern_key
-  : member_identifier | assignment_pattern_key
+  | APOSTROPHE LCURLY array_pattern_key COLON expression (COMMA array_pattern_key COLON expression)* RCURLY
   ;
 
 array_pattern_key
-  : constant_expression | assignment_pattern_key
-  ;
-
-assignment_pattern_key
-  : simple_type | KW_DEFAULT
+  : constant_expression | integer_type | non_integer_type | KW_DEFAULT
   ;
 
 assignment_pattern_expression
@@ -1690,10 +1683,6 @@ assignment_pattern_expression_type
   | ps_parameter_identifier
   | integer_atom_type
   | type_reference
-  ;
-
-constant_assignment_pattern_expression
-  : assignment_pattern_expression
   ;
 
 assignment_pattern_net_lvalue
