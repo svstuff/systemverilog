@@ -2545,6 +2545,11 @@ implicit_data_type
 
 // TODO
 data_type
+  : data_type_no_class
+  | class_type
+  ;
+
+data_type_no_class
   : integer_vector_type signing? packed_dimension*
   | integer_atom_type signing?
   | non_integer_type
@@ -2555,7 +2560,6 @@ data_type
   | KW_VIRTUAL KW_INTERFACE? interface_identifier parameter_value_assignment? (DOT modport_identifier)?
   | KW_EVENT
   | type_reference
-  | class_type
   ;
 
 struct_union
@@ -2623,15 +2627,16 @@ packed_dimension
   ;
 
 associative_dimension
-  : LSQUARE data_type RSQUARE
-  | LSQUARE MUL RSQUARE
+  : LSQUARE MUL RSQUARE
+  | LSQUARE data_type RSQUARE
   ;
 
 variable_dimension
-  : unsized_dimension
-  | unpacked_dimension
-  | associative_dimension
-  | queue_dimension
+  : LSQUARE MUL RSQUARE
+  | LSQUARE data_type_no_class RSQUARE
+  | LSQUARE constant_range RSQUARE
+  | LSQUARE constant_expression RSQUARE
+  | LSQUARE RSQUARE
   ;
 
 queue_dimension
