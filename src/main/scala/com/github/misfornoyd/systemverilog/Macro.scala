@@ -68,8 +68,8 @@ sealed class Defines extends com.typesafe.scalalogging.slf4j.Logging {
 }
 
 sealed class Define(
-	val line: Int, val col: Int, 
-	val id: String, val params: List[FormalParam], val ptokens: List[PToken]) {}
+  val ctx: Context, val line: Int, val col: Int,
+  val id: String, val params: List[FormalParam], val ptokens: List[PToken]) {}
 
 sealed class FormalParam(val index: Int, val id: String, val defvalue: Option[String]){}
 sealed class ActualParam(val ptokens: List[PToken]){}

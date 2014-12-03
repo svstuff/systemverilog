@@ -243,7 +243,7 @@ object Driver {
     var parent = ctx.parent
     var child = ctx
     while ( parent != null ){
-      sb ++= "Referenced from: %s(%d,%d)\n".format(parent.getFileName(), child.line, child.col)
+      sb ++= "Referenced from: %s(%d,%d)\n".format(parent.fileName, child.line, child.col)
       child = parent
       parent = parent.parent
     }

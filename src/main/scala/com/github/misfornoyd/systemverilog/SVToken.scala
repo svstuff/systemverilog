@@ -58,7 +58,7 @@ sealed abstract class SVToken (val tokindex:Int, val toktype:Int, val ctx:Contex
     if ( isEOF ){
       "%s(%s,%d,%d,%s)".format("EOF", "<root>", line, col, "<eof>")
     }else{
-      "%s(%s,%d,%d,%s)".format(LexerTokens.tokenNames(toktype), ctx.getShortId(), line, col, getTextRaw())
+      "%s(%s,%d,%d,%s)".format(LexerTokens.tokenNames(toktype), ctx.shortId(), line, col, getTextRaw())
     }
   }
 }

@@ -84,7 +84,7 @@ sealed class Lexer(
     // add the initial defines (typically provided on the command line)
     for ( (name, value) <- defs ){
       // TODO FIXME cmdline defines can probably be more complex than simple key=value
-      defines.defines += name -> new Define(0, 0, name, List(), List(new PTokenText(value)))
+      defines.defines += name -> new Define(null, 0, 0, name, List(), List(new PTokenText(value)))
     }
 
     // scan each source file
@@ -278,7 +278,7 @@ sealed class Lexer(
     val ptokens = preScanMacro( text, params.toList )
     ptokens.foreach(t => logger.trace(s"PTOKEN: ${t.toString}"))
 
-    defines.defines += id -> new Define(startLine, startCol, id, params.toList, ptokens)
+    defines.defines += id -> new Define(currentContext, startLine, startCol, id, params.toList, ptokens)
   }
 
   def getParamForId(id: String, formals: Seq[FormalParam]) : Option[FormalParam] = {
@@ -513,7 +513,7 @@ sealed class Lexer(
             // Recursively handle this whole conditional block (including skipping past `elsif and `endif)
             scanSource(source)
           } else {
-            logger.trace(s"${directive} skipping path for ${id} on line ${source.line} of context ${currentContext.getFileName}")
+            logger.trace(s"${directive} skipping path for ${id} on line ${source.line} of context ${currentContext.fileName}")
             // mutually recursive call to scan the `elsif or `else block
             scanConditionalBlock(source)
           }
@@ -530,7 +530,7 @@ sealed class Lexer(
           source.dropWhile( _.isWhitespace )
           produce( LexerTokens.TIMESCALE, line, col, source.takeWhile( _ != '\n' ) )
         } else if ( directive == "__FILE__") {
-          produce( LexerTokens.LIT_STRING, line, col, currentContext.getFileName )
+          produce( LexerTokens.LIT_STRING, line, col, currentContext.fileName )
         } else if ( directive == "__LINE__") {
           produce( LexerTokens.LIT_NUM, line, col, "%s".format(line) )
         } else if ( defines.defines.contains(directive) ){
@@ -871,25 +871,27 @@ sealed abstract class Context {
   val line : Int  // position in _parent_
   val col : Int   // position in _parent_
 
-  def getShortId() : String
-  def getFileName() : String
+  def shortId() : String
+  def fileName() : String
   def where() : String
   def what() : String
 }
 
 case class MacroContext ( parent : Context, line : Int, col : Int, d: Define, expanded: String ) extends Context {
   override def toString() : String = d.id
-  def getShortId() : String = d.id
-  def getFileName() : String = parent.getFileName
+  def shortId() : String = d.id
+  def fileName() : String = parent.fileName
   def where() : String = "Macro " + d.id
-  def what() : String = "Macro " + d.id + " expanded to:\n" + expanded + "\n"
+  def what() : String = {
+    s"Macro ${d.id} is defined in ${d.ctx.fileName}:${d.line} and expanded to:\n" + expanded + "\n"
+  }
 }
 
 case class FileContext ( parent : Context, line : Int, col : Int, id : String ) extends Context {
-  override def toString() : String =  getFileName
-  override def getShortId() : String = new File(id).getName()
-  def getFileName() : String = id
-  def where() : String = getFileName
+  override def toString() : String = fileName
+  override def shortId() : String = new File(id).getName()
+  def fileName() : String = id
+  def where() : String = fileName
   def what() : String = ""
 }
 
