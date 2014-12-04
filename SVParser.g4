@@ -2819,9 +2819,9 @@ primary
   | assignment_pattern_expression
   | streaming_concatenation
   | sequence_method_call
-  | KW_THIS
-  | DOLLAR
-  | KW_NULL
+  | KW_THIS // TODO I don't get this, but it's in the LRM
+  | DOLLAR  // ???
+  | KW_NULL // ???
   ;
 
 primary_literal
@@ -2873,6 +2873,9 @@ indexed_range
   | expression SUB_COLON constant_expression
   ;
 
+// [LRM] The local:: qualifier (see 18.7.1) is used to bypass the scope of the (randomize() with object) class and
+// begin the name resolution procedure in the (local) scope that contains the randomize method call.
+// TODO: local:: is only allowed inside inline constraint blocks, i.e. "randomize() with blah".
 class_qualifier
   : (KW_LOCAL COLON2)? (implicit_class_handle DOT | class_scope)
   ;
