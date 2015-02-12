@@ -204,6 +204,7 @@ object Driver {
             printContextChain(sb, e.ctx, e.line, e.col)
             sb ++= e.ctx.what()
             logger.error(sb.toString)
+            System.exit(1)
           }
           case e: Throwable => {
             // make sure the parser is interrupted
