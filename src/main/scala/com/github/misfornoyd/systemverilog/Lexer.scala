@@ -621,8 +621,8 @@ sealed class Lexer(
         // check for comment
         source.drop(1)
         source.peek match {
-          case '/' => consumeSingleLineComment(source);
-          case '*' => consumeMultiLineComment(source);
+          case '/' => { source.drop(1); consumeSingleLineComment(source); }
+          case '*' => { source.drop(1); consumeMultiLineComment(source); }
           case _ => produce( LexerTokens.DIV, line, col )
         }
       } else {
