@@ -17,12 +17,6 @@ for test in glob.glob("regressiontests/*"):
 	if runtest.run_test(path.join(test, "project.xml")) != 0:
 		failures.append(test)
 
-print "Parser tests:"
-for test in glob.glob("parsertests/*"):
-	print "- Running test: {}".format(test)
-	if runtest.run_test(path.join(test, "project.xml"), check_tokens=False) != 0:
-		failures.append(test)
-
 if failures:
 	print "There are {} failures:".format(len(failures))
 	for f in failures:
