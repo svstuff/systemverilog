@@ -2988,6 +2988,7 @@ simple_identifier
   | KW_SHUFFLE
   | KW_SUM
   | KW_PRODUCT
+  | KW_NULL
   ;
 
 system_tf_identifier
