@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+from __future__ import print_function
 import sys
 
 nesting = 0
@@ -8,11 +8,11 @@ for line in sys.stdin:
   line = line.strip()
   words = line.split()
   if not len(words) > 1:
-    print line
+    print(line)
     continue
 
   if words[0] not in ('enter', 'exit', 'consume'):
-    print line
+    print(line)
     continue
 
   if words[0] == 'exit':
@@ -20,7 +20,7 @@ for line in sys.stdin:
     continue
 
   if words[0] == 'enter':
+    print('|  ' * nesting, ' '.join(words[1:]), sep='')
     nesting += 1
-    print '| ' * nesting, ' '.join(words[1:])
   else:
-    print '| ' * nesting, '+', ' '.join(words[0:])
+    print('|  ' * (nesting - 1), '+  ', ' '.join(words[0:]), sep='')
