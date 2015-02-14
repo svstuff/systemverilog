@@ -1,3 +1,4 @@
 function void func();
-      foo = 64'(bar[0]);
+   // Casting
+   foo = 64'(bar[0]);
 endfunction

@@ -974,14 +974,13 @@ statement
   : (block_identifier COLON)? attribute_instances statement_item
   ;
 
+// ESL statement
 statement_item
   : blocking_assignment SEMI
   | nonblocking_assignment SEMI
   | procedural_continuous_assignment SEMI
   | case_statement
   | conditional_statement
-  | inc_or_dec_expression SEMI
-  | subroutine_call_statement
   | disable_statement
   | event_trigger
   | loop_statement
@@ -995,6 +994,8 @@ statement_item
   | randsequence_statement
   | randcase_statement
   | expect_property_statement
+  // FIXME this is too relaxed. The grammar allows just a couple of expressions to be statements.
+  | expression SEMI
   ;
 
 concurrent_assertion_item
@@ -1589,9 +1590,11 @@ sequence_instance
   ;
 
 sequence_list_of_arguments
-  : DOT identifier LPAREN sequence_actual_arg? RPAREN ( COMMA DOT identifier LPAREN sequence_actual_arg? RPAREN )*
+  : DOT identifier LPAREN sequence_actual_arg? RPAREN
+    ( COMMA DOT identifier LPAREN sequence_actual_arg? RPAREN )*
   // Workaround for problematic spec grammar rule.
-  | sequence_actual_arg (COMMA sequence_actual_arg?)* ( COMMA DOT identifier LPAREN sequence_actual_arg? RPAREN )*
+  | sequence_actual_arg (COMMA sequence_actual_arg?)*
+    ( COMMA DOT identifier LPAREN sequence_actual_arg? RPAREN )*
   | (COMMA sequence_actual_arg?)+ ( COMMA DOT identifier LPAREN sequence_actual_arg? RPAREN )*
   | ( COMMA DOT identifier LPAREN sequence_actual_arg? RPAREN )+
   ;
@@ -1621,6 +1624,7 @@ clocking_event
   | AT_SIGN LPAREN event_expression RPAREN
   ;
 
+// ESL sequence method call
 sequence_method_call
   : sequence_instance DOT method_identifier
   ;
@@ -1710,6 +1714,7 @@ system_tf_call
   | system_tf_identifier LPAREN data_type (COMMA expression)? RPAREN
   ;
 
+// ESL call
 subroutine_call
   : tf_call
   | system_tf_call
@@ -1762,13 +1767,15 @@ scope_randomize_call
   : (KW_STD COLON2)? KW_RANDOMIZE LPAREN variable_identifier_list? RPAREN (KW_WITH constraint_block)?
   ;
 
+// ESL randomize call
 method_randomize_call
   : method_call_root DOT KW_RANDOMIZE attribute_instances
     (LPAREN (randomize_param_list | KW_NULL)? RPAREN)?
     (KW_WITH (LPAREN identifier_list? RPAREN)? constraint_block)?
     ;
 
-// NOTE: the LRM seems to be wrong on the variable_identifier_list, since this disallows e.g. "this.varname".
+// NOTE: the LRM seems to be wrong on the variable_identifier_list, since this disallows e.g.
+// "this.varname".
 randomize_param_list
   : expression (COMMA expression)*
   ;
@@ -2680,7 +2687,8 @@ net_concatenation : LCURLY net_concatenation_value ( COMMA net_concatenation_val
 net_concatenation_value
   : hierarchical_identifier
   | hierarchical_identifier LSQUARE expression RSQUARE ( LSQUARE expression RSQUARE )*
-  | hierarchical_identifier LSQUARE expression RSQUARE ( LSQUARE expression RSQUARE )* LSQUARE range_expression RSQUARE
+  | hierarchical_identifier LSQUARE expression RSQUARE ( LSQUARE expression RSQUARE )*
+    LSQUARE range_expression RSQUARE
   | hierarchical_identifier LSQUARE range_expression RSQUARE
   | net_concatenation
   ;
@@ -2692,7 +2700,8 @@ variable_concatenation
 variable_concatenation_value
   : hierarchical_identifier
   | hierarchical_identifier LSQUARE expression RSQUARE ( LSQUARE expression RSQUARE )*
-  | hierarchical_identifier LSQUARE expression RSQUARE ( LSQUARE expression RSQUARE )* LSQUARE range_expression RSQUARE
+  | hierarchical_identifier LSQUARE expression RSQUARE ( LSQUARE expression RSQUARE )*
+    LSQUARE range_expression RSQUARE
   | hierarchical_identifier LSQUARE range_expression RSQUARE
   | variable_concatenation
   ;
@@ -2733,11 +2742,58 @@ expression
     )*
   ;
 
+// ESL term
 term
-  : (primary
-  | unary_operator attribute_instances primary
-  | inc_or_dec_expression
+  : (
+      unary_operator attribute_instances term
+
+    // TODO should the post-increment/decrement be similar to the below?
+    | inc_or_dec_expression
+
+    // scoped randomize call
+    | (KW_STD COLON2)? KW_RANDOMIZE randomize_call_expr
+
+    // randomize method call
+    | primary DOT KW_RANDOMIZE randomize_call_expr
+
+    // function call with paramlist and optional lambda (and optional chained call)
+    | primary LPAREN list_of_arguments RPAREN array_lambda? (DOT expression)?
+
+    // function call without paramlist but with lambda (and optional chained call)
+    | primary array_lambda (DOT expression)?
+
+    // chained call or member lookup
+    | primary DOT expression
+
+    // package or class scope resolution
+    | primary COLON2 expression
+
+    // array subscript
+    | primary (LSQUARE expression (COLON expression)? RSQUARE)+ (DOT expression)?
+
+    // either simple primary expression or function call with no paramlist and no lambda.
+    | primary
+
   ) inside_expression?
+  ;
+
+array_lambda
+  : KW_WITH LPAREN expression RPAREN
+  ;
+
+// NOTE: LRM grammar is wrong. randomize cannot take a variable_identifier_list,
+// or the example on page 101 of the 2012 LRM is wrong. Assume a list of expression for now.
+randomize_call_expr
+  : attribute_instances (LPAREN randomize_call_args? RPAREN)? randomize_lambda?
+  ;
+
+// NOTE: "null" is a primary expression, a literal.
+randomize_call_args
+  : expression (COMMA expression)*
+  ;
+
+randomize_lambda
+  : KW_WITH (LPAREN identifier_list? RPAREN)? constraint_block
   ;
 
 inside_expression
@@ -2774,6 +2830,7 @@ msb_constant_expression
   : constant_expression
   ;
 
+// ESL range
 range_expression
   : expression
   | msb_constant_expression QUE lsb_constant_expression
@@ -2806,11 +2863,11 @@ module_path_primary
   ;
 
 // TODO
+// ESL primary
 primary
   : primary_literal
-  | primary_identifier_or_call
-  | randomize_call
-  | system_tf_call
+  | primary_identifier
+  | identifier parameter_value_assignment  // generic type instantiation
   | empty_queue
   | concatenation (LSQUARE range_expression RSQUARE)?
   | multiple_concatenation (LSQUARE range_expression RSQUARE)?
@@ -2818,14 +2875,15 @@ primary
   | cast
   | assignment_pattern_expression
   | streaming_concatenation
-  | sequence_method_call
-  | KW_THIS // TODO I don't get this, but it's in the LRM
-  | DOLLAR  // ???
-  | KW_NULL // ???
+  | DOLLAR  // TODO What does this mean???
   ;
 
 primary_literal
-  : number | LIT_TIME | LIT_UNBASED_UNSIZED | string_literal
+  : number | LIT_TIME | LIT_UNBASED_UNSIZED | string_literal | KW_NULL
+  ;
+
+primary_identifier
+  : identifier | system_tf_identifier
   ;
 
 string_literal
@@ -2839,16 +2897,14 @@ cast
   ;
 
 casting_type
-  : simple_type | constant_primary | signing | KW_STRING | KW_CONST
+  : simple_type | constant_primary | signing | KW_STRING | KW_CONST | KW_VOID
   ;
 
-primary_identifier_or_call
-  : primary_identifier (LPAREN list_of_arguments RPAREN)?
-  ;
-
-primary_identifier
-  : class_qualifier? hierarchical_identifier select
-  | DOLLAR_UNIT COLON2 hierarchical_identifier select
+// ESL primary
+// FIXME does not handle nested calls and things like obj.getchildren()[0].method();
+primary_call
+  : primary_identifier LPAREN list_of_arguments RPAREN
+    (KW_WITH LPAREN expression RPAREN)?
   ;
 
 select
@@ -2873,22 +2929,21 @@ indexed_range
   | expression SUB_COLON constant_expression
   ;
 
-// [LRM] The local:: qualifier (see 18.7.1) is used to bypass the scope of the (randomize() with object) class and
-// begin the name resolution procedure in the (local) scope that contains the randomize method call.
+// [LRM] The local:: qualifier (see 18.7.1) is used to bypass the scope of the (randomize() with
+// object) class and begin the name resolution procedure in the (local) scope that contains the
+// randomize method call.
 // TODO: local:: is only allowed inside inline constraint blocks, i.e. "randomize() with blah".
 class_qualifier
   : (KW_LOCAL COLON2)? (implicit_class_handle DOT | class_scope)
   ;
 
 // TODO bug #16, primary and method_call_root are mutually left-recursive in spec grammar.
-// method call root can be an expression
+// FIXME method call root can be any expression really. E.g. obj.getchildren()[0].method();
 // See also: http://www.eda.org/svdb/view.php?id=1480
-primary_call_root
-  : (class_qualifier | package_scope)? hierarchical_identifier select attribute_instances (LPAREN list_of_arguments RPAREN)?
-  ;
-
+// Method calls really should be handled as postfix expressions, but that would mean rewriting the
+// expression rules. Trying to stick close the the spec here, sigh.
 method_call_root
-  : primary_call_root | implicit_class_handle
+  : identifier (LPAREN list_of_arguments RPAREN)?
   ;
 
 method_call
@@ -2969,7 +3024,8 @@ escaped_identifier
 
 simple_identifier
   : ID
-  // Special tokens that are not really keywords but tokenized to avoid semantic predicates in the grammar.
+  // Special tokens that are not really keywords but tokenized to avoid semantic predicates in the
+  // grammar.
   | KW_STD
   | KW_NEW
   | KW_OPTION
@@ -2988,7 +3044,8 @@ simple_identifier
   | KW_SHUFFLE
   | KW_SUM
   | KW_PRODUCT
-  | KW_NULL
+  | KW_THIS
+  | KW_SUPER
   ;
 
 system_tf_identifier
@@ -3070,7 +3127,8 @@ method_identifier : identifier ;
 function_identifier : identifier ;
 
 hierarchical_identifier
-  : (DOLLAR_ROOT DOT)? identifier (constant_bit_select* DOT identifier)*
+//  : (DOLLAR_ROOT DOT)? identifier (constant_bit_select* DOT identifier)*
+  : identifier (DOT identifier)*
   ;
 
 hierarchical_parameter_identifier
