@@ -28,5 +28,18 @@ tasks.withType(ScalaCompile) {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.0'
+    gradleVersion = '2.2.1'
 }
+
+task antlr(type: Exec) {
+    workingDir = "${projectDir}"
+    executable = 'python'
+    args = ['./regen.py']
+    inputs.files files('regen.py', 'SVParser.g4')
+    outputs.files files {
+        file("src/main/java/com/github/misfornoyd/systemverilog/generated").listFiles() +
+        file("src/main/scala/com/github/misfornoyd/systemverilog/generated").listFiles()
+    }
+}
+
+compileJava.dependsOn antlr
