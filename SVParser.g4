@@ -2782,9 +2782,10 @@ postfix_expr
     // package or class scope resolution
   | primary COLON2 expression
 
-    // array subscript
-  | primary (LSQUARE array_range_expression? RSQUARE)+ (DOT expression)?
+    // array subscript with optional chained call and post-inc/dec
+  | primary (LSQUARE array_range_expression? RSQUARE)+ (DOT expression)? inc_or_dec_operator?
 
+    // simple post-inc/dec
   | primary attribute_instances inc_or_dec_operator
 
     // either simple primary expression or function call with no paramlist and no lambda.
