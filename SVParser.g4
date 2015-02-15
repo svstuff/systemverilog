@@ -976,9 +976,7 @@ statement
 
 // ESL statement
 statement_item
-  : blocking_assignment SEMI
-  | nonblocking_assignment SEMI
-  | procedural_continuous_assignment SEMI
+  : procedural_continuous_assignment SEMI
   | case_statement
   | conditional_statement
   | disable_statement
@@ -994,8 +992,10 @@ statement_item
   | randsequence_statement
   | randcase_statement
   | expect_property_statement
-  // FIXME this is too relaxed. The grammar allows just a couple of expressions to be statements.
-  | expression SEMI
+  // NOTE this is too relaxed. The grammar allows just a couple of expressions to be statements.
+  // Specifically inc_or_dec and calls.
+  // Also this now replaces (un)blocking_assignment.
+  | statement_expression SEMI
   ;
 
 concurrent_assertion_item
@@ -1718,7 +1718,6 @@ system_tf_call
 subroutine_call
   : tf_call
   | system_tf_call
-  | static_method_call // see issue #20
   | method_call
   | randomize_call
   ;
@@ -2735,6 +2734,15 @@ dimension_constant_expression
   : constant_expression
   ;
 
+statement_expression
+  : expression LT_EQ delay_or_event_control? expression  // non-blocking assignment
+  | expression EQ delay_or_event_control expression      // blocking assignment
+  | expression EQ dynamic_array_new                      // dynamic array init
+  | expression EQ class_new                              // object init
+  | expression assignment_operator expression            // variable assignment
+  | expression
+  ;
+
 expression
   : term (
         binary_operator attribute_instances term
@@ -2747,34 +2755,39 @@ term
   : (
       unary_operator attribute_instances term
 
-    // TODO should the post-increment/decrement be similar to the below?
+      // TODO should the post-increment/decrement be similar to the below?
     | inc_or_dec_expression
 
-    // scoped randomize call
+      // scoped randomize call
     | (KW_STD COLON2)? KW_RANDOMIZE randomize_call_expr
 
-    // randomize method call
-    | primary DOT KW_RANDOMIZE randomize_call_expr
-
-    // function call with paramlist and optional lambda (and optional chained call)
-    | primary LPAREN list_of_arguments RPAREN array_lambda? (DOT expression)?
-
-    // function call without paramlist but with lambda (and optional chained call)
-    | primary array_lambda (DOT expression)?
-
-    // chained call or member lookup
-    | primary DOT expression
-
-    // package or class scope resolution
-    | primary COLON2 expression
-
-    // array subscript
-    | primary (LSQUARE expression (COLON expression)? RSQUARE)+ (DOT expression)?
-
-    // either simple primary expression or function call with no paramlist and no lambda.
-    | primary
+    | postfix_expr
 
   ) inside_expression?
+  ;
+
+postfix_expr
+  :
+    // randomize method call
+    primary DOT KW_RANDOMIZE randomize_call_expr
+
+    // function call with paramlist and optional lambda (and optional chained call)
+  | primary LPAREN list_of_arguments RPAREN array_lambda? (DOT expression)?
+
+    // function call without paramlist but with lambda (and optional chained call)
+  | primary array_lambda (DOT expression)?
+
+    // chained call or member lookup
+  | primary DOT expression
+
+    // package or class scope resolution
+  | primary COLON2 expression
+
+    // array subscript
+  | primary (LSQUARE expression (COLON expression)? RSQUARE)+ (DOT expression)?
+
+    // either simple primary expression or function call with no paramlist and no lambda.
+  | primary
   ;
 
 array_lambda
@@ -2940,8 +2953,6 @@ class_qualifier
 // TODO bug #16, primary and method_call_root are mutually left-recursive in spec grammar.
 // FIXME method call root can be any expression really. E.g. obj.getchildren()[0].method();
 // See also: http://www.eda.org/svdb/view.php?id=1480
-// Method calls really should be handled as postfix expressions, but that would mean rewriting the
-// expression rules. Trying to stick close the the spec here, sigh.
 method_call_root
   : identifier (LPAREN list_of_arguments RPAREN)?
   ;
