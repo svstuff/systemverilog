@@ -2755,8 +2755,7 @@ term
   : (
       unary_operator attribute_instances term
 
-      // TODO should the post-increment/decrement be similar to the below?
-    | inc_or_dec_expression
+    | inc_or_dec_operator attribute_instances term
 
       // scoped randomize call
     | (KW_STD COLON2)? KW_RANDOMIZE randomize_call_expr
@@ -2784,7 +2783,9 @@ postfix_expr
   | primary COLON2 expression
 
     // array subscript
-  | primary (LSQUARE expression (COLON expression)? RSQUARE)+ (DOT expression)?
+  | primary (LSQUARE array_range_expression? RSQUARE)+ (DOT expression)?
+
+  | primary attribute_instances inc_or_dec_operator
 
     // either simple primary expression or function call with no paramlist and no lambda.
   | primary
