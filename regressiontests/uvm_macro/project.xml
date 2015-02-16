@@ -1,0 +1,7 @@
+<project>
+	<incdir>../../uvm-1.1d/src</incdir>
+	<source>test.sv</source>
+	<debug>print_tokens</debug>
+  <debug>lexer_only</debug>
+  <logLevel>TRACE</logLevel>
+</project>
