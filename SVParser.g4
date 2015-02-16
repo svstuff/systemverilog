@@ -1260,13 +1260,12 @@ loop_statement
 // - http://www.eda.org/mantis/view.php?id=2932
 // - http://www.eda.org/mantis/view.php?id=1712
 // Real code uses multiple indexes.
-// The thinking from the EDA people is that in the following 'foo[0]' is a hierarchical id, but it isn't:
+// The thinking from the EDA people is that in the following 'foo[0]' is a hierarchical id,
+// but it isn't:
 // - foreach( foo[0][i] ).
+// For now allow any expression and defer checking to the semantic phase.
 foreach
-  : KW_FOREACH LPAREN ps_or_hierarchical_array_identifier
-    (LSQUARE constant_expression RSQUARE)*
-    LSQUARE loop_variables? RSQUARE
-    RPAREN
+  : KW_FOREACH LPAREN expression LSQUARE loop_variables RSQUARE RPAREN
   ;
 
 for_initialization
