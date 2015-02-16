@@ -14,7 +14,11 @@ failures = []
 print "Lexer tests:"
 for test in glob.glob("regressiontests/*"):
 	print "- Running test: {}".format(test)
-	if runtest.run_test(path.join(test, "project.xml")) != 0:
+        try:
+	        if runtest.run_test(path.join(test, "project.xml")) != 0:
+		        failures.append(test)
+        except:
+                print "- ERROR: exception."
 		failures.append(test)
 
 if failures:
