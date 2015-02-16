@@ -1,3 +1,5 @@
-`include "uvm_macros.svh"
 
-    `M_UVM_FIELD_QDA_INT(ARRAY, byte_valid,      UVM_DEFAULT|UVM_NOCOMPARE|UVM_NOPACK)
+`define FOO(TYPE,ARG,FLAG) `M_UVM_``TYPE(ARG,FLAG)
+`define M_UVM_ARRAY(arg1, arg2) yo
+
+`FOO(ARRAY, byte_valid, UVM_NOPACK)
