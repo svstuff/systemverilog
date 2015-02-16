@@ -2,4 +2,4 @@ language: java
 jdk:
   - oraclejdk7
   - openjdk7
-script: ./runtests.py
+script: ./parsertests.py
