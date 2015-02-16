@@ -1736,26 +1736,6 @@ array_manipulation_call
     (KW_WITH LPAREN expression RPAREN)?
   ;
 
-array_method_name
-  : KW_UNIQUE | KW_AND | KW_OR | KW_XOR
-  // TODO some of the array builtins allow/disallow the 'with' clause. Currently too relaxed grammar.
-  | KW_FIND
-  | KW_FIND_INDEX
-  | KW_FIND_FIRST
-  | KW_FIND_FIRST_INDEX
-  | KW_FIND_LAST
-  | KW_FIND_LAST_INDEX
-  | KW_MIN
-  | KW_MAX
-  | KW_UNIQUE_INDEX
-  | KW_REVERSE
-  | KW_SORT
-  | KW_RSORT
-  | KW_SHUFFLE
-  | KW_SUM
-  | KW_PRODUCT
-  ;
-
 randomize_call
   : scope_randomize_call
   | method_randomize_call
@@ -3041,6 +3021,16 @@ simple_identifier
   | KW_STD
   | KW_NEW
   | KW_OPTION
+  | KW_THIS
+  | KW_SUPER
+  | array_method_name
+  ;
+
+array_method_name
+  : KW_UNIQUE
+  | KW_AND
+  | KW_OR
+  | KW_XOR
   | KW_FIND
   | KW_FIND_INDEX
   | KW_FIND_FIRST
@@ -3056,8 +3046,6 @@ simple_identifier
   | KW_SHUFFLE
   | KW_SUM
   | KW_PRODUCT
-  | KW_THIS
-  | KW_SUPER
   ;
 
 system_tf_identifier

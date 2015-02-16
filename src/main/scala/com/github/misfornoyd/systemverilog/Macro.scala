@@ -33,15 +33,36 @@ sealed class Defines extends com.typesafe.scalalogging.slf4j.Logging {
         // formal parameter, expand to actual param
         expandTokens(indent + 1, actuals(formal.index).ptokens, List.empty[ActualParam])
       }
-      case PTokenCall(callee, call_actuals) =>  {
+      case PTokenCall(call_parts, call_actuals) =>  {
         // there are two sets of actual parameters here, one is the parameters to the define we
         // are currently expanding and the other is the parameters in the embedded macro call.
 
         // we need to replace any FormalParam's in the inner call actuals with the ActualParam's
         // of the current define.
 
+        // we also need to assemble the macro id, which could include stuff like
+        // `start_of_call_``WAT, where "WAT" is actually a formal parameter to the outer macro.
+        val call_name = new StringBuilder
+        for ( a <- call_parts ){
+          a match {
+            case PTokenText(text) => {
+              // Ok, so this is the "start_of_call_" part.
+              call_name ++= text
+            }
+            case PTokenParam(formal) => {
+              // This would be the "WAT".
+              // NOTE: for now just assume there is only one level to this madness.
+              call_name ++= expandTokens(indent+1, actuals(formal.index).ptokens, List.empty[ActualParam])
+            }
+          }
+        }
+
+        // Ok, we have the full name now, look it up in the macro dictionary.
+        // TODO raise a lexer error if we can't find the define. For now bomb out.
+        val callee = defines(call_name.toString)
+
         // recursively expand the callee
-        expand0(indent + 1, defines(callee), call_actuals.map(a => propagateOuterActual(indent, a, actuals)))
+        expand0(indent + 1, callee, call_actuals.map(a => propagateOuterActual(indent, a, actuals)))
       }
     }
   }
@@ -82,7 +103,7 @@ case class PTokenText(val text : String) extends PToken {
 case class PTokenParam(val param : FormalParam) extends PToken {
   override def toString = s"par: ${param.id}"
 }
-case class PTokenCall(val macroid : String, val actuals : List[ActualParam]) extends PToken {
+case class PTokenCall(val macroid : Seq[PToken], val actuals : List[ActualParam]) extends PToken {
   override def toString = {
     val sb = new StringBuilder
     sb ++= s"call: id=${macroid}, actuals:"

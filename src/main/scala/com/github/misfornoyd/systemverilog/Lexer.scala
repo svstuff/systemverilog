@@ -309,7 +309,7 @@ sealed class Lexer(
           // start of identifier, check if it matches a formal parameter
           val id = source.takeWhile( (c) => { c.isLetterOrDigit || c == '_' } )
           getParamForId(id, formals) match {
-            case Some(param) =>  {
+            case Some(param) => {
               // the id is a formal parameter.
               // add the text thus far as a simple pretoken
               if ( !sb.isEmpty ) {
@@ -358,18 +358,18 @@ sealed class Lexer(
             sb += '"'
           } else if ( c2.isLetter || c2 == '_' ) {
             // macro call or compiler directive, extract the id to find which
-            val id = source.takeWhile( (c) => { c.isLetterOrDigit || c == '_' } )
-            if ( skipInPrescan.contains(id) ){
+            val (idRaw, idList) = macroCallId(source, formals)
+            if ( idList.length == 1 && skipInPrescan.contains(idRaw) ){
               // skip directives, and treat builtin macros as text (will be handled in normal scanner)
               sb += '`'
-              sb ++= id
+              sb ++= idRaw
             }else{
               // macro call, so add the text token and then extract the call token
               if ( !sb.isEmpty ) {
                 ptokens += new PTokenText(sb.toString)
                 sb.clear
               }
-              ptokens ++= preScanMacroCall(source, id, formals)
+              ptokens ++= preScanMacroCall(source, idList, formals)
             }
           }else{
             throw lexerError("incorrect preprocessor directive", currentContext, 0, 0)
@@ -393,13 +393,59 @@ sealed class Lexer(
     ptokens.toList
   }
 
-  def preScanMacroCall( source : SystemVerilogSource, id: String, formals : Seq[FormalParam] ) : List[PToken] = {
+  /** Returns the macro ID as a String and as a list of preprocessor tokens.
+    *
+    * The macro ID String is only valid if the list of preprocessor tokens has a single element.
+    * Otherwise the real ID must be evaluated from the ptokens within the context of the outer
+    * macro (which will have a list of actual parameters).
+    *
+    * @param source current SV source stream from which to consume characters
+    * @param formals sequence of formal parameters for the macro which contains this call
+    * @return tuple (raw ID, ptokens) describing the ID of the macro which is being called.
+    */
+  def macroCallId( source : SystemVerilogSource, formals : Seq[FormalParam] ) : (String, Seq[PToken]) = {
+    val idPart = new StringBuilder
+    val idList = collection.mutable.ListBuffer.empty[String]
+    var more = true
+
+    while ( more && source.hasNext ){
+      val c = source.peek
+      if ( c.isLetterOrDigit || c == '_' ){
+        idPart += source.next
+      } else if ( c == '`' ) {
+        if ( source.peekn(2) == "``" ){
+          source.drop(2)
+          idList += idPart.toString
+          idPart.clear
+        }else{
+          more = false
+        }
+      } else {
+        more = false
+      }
+    }
+
+    if ( !idPart.isEmpty ){
+      idList += idPart.toString
+    }
+
+    val ptokens = idList.map( a => {
+      getParamForId(a, formals) match {
+        case Some(param) =>  new PTokenParam(param)
+        case None =>         new PTokenText(a)
+      }
+    })
+
+    (idPart.toString, ptokens)
+  }
+
+  def preScanMacroCall( source : SystemVerilogSource, id: Seq[PToken], formals : Seq[FormalParam] ) : List[PToken] = {
     // [LRM] White space shall be allowed between the text macro name and the left parenthesis in the macro usage.
     val ws = source.takeWhile( _.isWhitespace )
     // extract the actual parameters, if any
     if ( source.hasNext && source.peek == '('){
       val actuals = getActualParams(source)
-      List(new PTokenCall( id, actuals.map( a => actualParamFromString(a, formals) )))
+      List(new PTokenCall(id, actuals.map( a => actualParamFromString(a, formals) )))
     } else {
       // no parameters, add back the consumed whitespace
       List(new PTokenCall(id, List.empty[ActualParam]), new PTokenText(ws))
@@ -444,7 +490,7 @@ sealed class Lexer(
     var escaped = false
     var more = true
     var text = new StringBuilder
-    while ( more ){
+    while ( more && source.hasNext ){
       val c = nextChar( source )
       if ( c == '"' && !escaped ){
         more = false
@@ -726,7 +772,8 @@ sealed class Lexer(
     while ( source.hasNext ){
       val c = source.next
       if ( c == '*' ){
-        if ( source.hasNext && source.next == '/' ){
+        if ( source.hasNext && source.peek == '/' ){
+          source.next
           sb ++= "*/"
           return sb.toString
         }
