@@ -2463,7 +2463,7 @@ list_of_interface_identifiers
   ;
 
 list_of_port_identifiers
-  : port_identifier ( COMMA port_identifier )*
+  : port_identifier unpacked_dimension* ( COMMA port_identifier unpacked_dimension* )*
   ;
 
 list_of_variable_port_identifiers
