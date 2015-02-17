@@ -55,11 +55,18 @@ import org.antlr.v4.runtime.Token
 
 import generated._
 
+import java.nio.charset.CodingErrorAction
+import scala.io.Codec
+
 sealed class Lexer(
   tokens : BlockingQueue[SVToken],
   incdirs : Seq[String],
   printTokens : Boolean,
   skipEnqueue: Boolean) extends com.typesafe.scalalogging.slf4j.Logging {
+
+  implicit val codec = Codec("UTF-8")
+  codec.onMalformedInput(CodingErrorAction.REPLACE)
+  codec.onUnmappableCharacter(CodingErrorAction.REPLACE)
 
   // ANTLR requires each token to know its index in the token stream.
   var currentTokenIndex = 0
