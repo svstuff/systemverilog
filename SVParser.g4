@@ -1265,7 +1265,7 @@ loop_statement
 // - foreach( foo[0][i] ).
 // For now allow any expression and defer checking to the semantic phase.
 foreach
-  : KW_FOREACH LPAREN expression LSQUARE loop_variables RSQUARE RPAREN
+  : KW_FOREACH LPAREN expression (LSQUARE loop_variables RSQUARE)? RPAREN
   ;
 
 for_initialization
@@ -3023,6 +3023,7 @@ simple_identifier
   | KW_OPTION
   | KW_THIS
   | KW_SUPER
+  | KW_LOCAL
   | array_method_name
   ;
 
