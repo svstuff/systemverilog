@@ -678,18 +678,44 @@ sealed class Lexer(
           case '*' => { source.drop(1); consumeMultiLineComment(source); }
           case _ => produce( LexerTokens.DIV, line, col )
         }
-      } else {
-        // The character must be one of the special characters (or not a valid token at all).
-        // Try to get the longest sequence of characters that corresponds to an operator.
-        val candidate = source.peekn(LexerTokens.operatorMaxLength)
-        candidate match {
-          case LexerTokens.operatorPattern(operator) => {
-            source.drop(operator.length)
-            produce(LexerTokens.operators(operator), line, col)
+      } else if ( c == ':' ) {
+        // Need to special-case for operators that could end with a slash. Afaict this is only :/.
+        // check for :/, which could either be an operator or a colon followed by a comment.
+        val wat = source.peekn(3)
+        if ( wat.length != 3 ){
+          // didn't get 3 characters, hence this must be :/ or some other operator.
+          produceOperator( source, line, col )
+        }else if( wat(1) != '/' ){
+          // ok, we have 3 characters, but it's not :/
+          produceOperator( source, line, col )
+        }else{
+          // this could be either ":/" or ":// comment" or ":/* multi-comment".
+          if ( "*/".contains(wat(2)) ){
+            // assume this means COLON then a comment.
+            source.drop(1)
+            produce( LexerTokens.COLON, line, col )
+          }else{
+            // must be :/ followed by something else.
+            source.drop(2)
+            produce( LexerTokens.COLON_DIV, line, col )
           }
-          case _ => throw lexerError("\"%c\" is not legal".format(c), currentContext, line, col )
         }
+      } else {
+        produceOperator( source, line, col )
       }
+    }
+  }
+
+  def produceOperator( source : SystemVerilogSource, line : Int, col : Int ) {
+    // The character must be one of the special characters (or not a valid token at all).
+    // Try to get the longest sequence of characters that corresponds to an operator.
+    val candidate = source.peekn(LexerTokens.operatorMaxLength)
+    candidate match {
+      case LexerTokens.operatorPattern(operator) => {
+        source.drop(operator.length)
+        produce(LexerTokens.operators(operator), line, col)
+      }
+      case _ => throw lexerError("\"%c\" is not legal".format(candidate(0)), currentContext, line, col )
     }
   }
 
