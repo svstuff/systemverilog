@@ -872,7 +872,7 @@ list_of_variable_decl_assignments
 
 variable_decl_assignment
   : variable_identifier variable_dimension* (EQ expression)?
-  | class_variable_identifier EQ KW_NEW expression
+  | class_variable_identifier EQ class_new
   | dynamic_array_variable_identifier unsized_dimension variable_dimension* (EQ dynamic_array_new)?
   ;
 
@@ -2718,6 +2718,7 @@ statement_expression
   | expression EQ delay_or_event_control expression      // blocking assignment
   | expression EQ dynamic_array_new                      // dynamic array init
   | expression EQ class_new                              // object init
+  | KW_SUPER DOT KW_NEW LPAREN list_of_arguments RPAREN  // super constructor call
   | expression assignment_operator expression            // variable assignment
   | expression
   ;
@@ -3019,7 +3020,6 @@ simple_identifier
   // Special tokens that are not really keywords but tokenized to avoid semantic predicates in the
   // grammar.
   | KW_STD
-  | KW_NEW
   | KW_OPTION
   | KW_THIS
   | KW_SUPER
@@ -3125,7 +3125,7 @@ ps_covergroup_identifier
 c_identifier : identifier ;
 
 method_identifier : identifier ;
-function_identifier : identifier ;
+function_identifier : identifier | KW_NEW ;
 
 hierarchical_identifier
 //  : (DOLLAR_ROOT DOT)? identifier (constant_bit_select* DOT identifier)*
