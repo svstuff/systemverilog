@@ -2365,9 +2365,21 @@ timeunits_declaration
   | KW_TIMEPRECISION LIT_TIME SEMI KW_TIMEUNIT LIT_TIME SEMI
   ;
 
-// TODO skip interface contents for now.
 interface_body
-  : (~KW_ENDINTERFACE)*?
+  : interface_item*
+  ;
+
+interface_item
+  : port_declaration SEMI
+  | non_port_interface_item
+  ;
+
+non_port_interface_item
+  : generate_region
+  | interface_or_generate_item
+  | program_declaration
+  | interface_declaration
+  | timeunits_declaration
   ;
 
 package_import_declaration

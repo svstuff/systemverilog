@@ -45,6 +45,19 @@ object Driver {
       }
     })
   }
+  def createSerializerVisitor( parser: SVParser, features: List[String], debugOptions: List[String]) : SerializerVisitor = {
+    if ( features.contains("serialize_to_xml") ){
+      val fstream = new java.io.FileOutputStream("svparsetree.gz")
+      val gzstream = new java.util.zip.GZIPOutputStream(fstream)
+      if ( debugOptions.contains("debug_serializer") ){
+        new DebugSerializerVisitor(parser, gzstream)
+      }else{
+        new SerializerVisitorImpl(parser, gzstream)
+      }
+    }else{
+      new NullSerializerVisitor
+    }
+  }
   def parse( projectPath: String ) {
     println("SVPARSE version %s.\nReading project file: %s".format(version, projectPath))
 
@@ -55,6 +68,7 @@ object Driver {
       }
       case None => <root/>
     }
+    val extraFeatures = (extra \\ "feature").toList.map(_.text)
     val extraDebugOptions = (extra \\ "debug").toList.map(_.text)
     val extraLogLevel = (extra \ "logLevel").text
 
@@ -70,6 +84,8 @@ object Driver {
 
     // NOTE: from this point on use the logger for output
 
+    val projectFeatures = (project \\ "feature").toList.map(_.text)
+    val features = extraFeatures ++ projectFeatures
     val projectDebugOptions = (project \\ "debug").toList.map(_.text)
     val debugOptions = extraDebugOptions ++ projectDebugOptions
 
@@ -136,12 +152,24 @@ object Driver {
           parser.addErrorListener(new DiagnosticErrorListener())
         }
 
+        val visitor = createSerializerVisitor( parser, features, debugOptions )
+        visitor.start
+
         try {
+
+          // TODO run the semantic analysis and serializer (parsetree visitors) in a
+          // separate thread by adding the parsetree for each root element to a queue.
 
           var prevtoktype = 0
           while( (prevtoktype != Token.EOF) && (prevtoktype != LexerTokens.ERROR) ){
-            parser.root_element()
+            val parsetree = parser.root_element()
+            visitor.visit(parsetree)
             prevtoktype = parser.getCurrentToken().getType()
+          }
+
+          if ( prevtoktype != Token.EOF ){
+            logger.error(s"Internal error on token type: ${prevtoktype}")
+            sys.exit(1)
           }
 
           logger.info("SUCCESS")
@@ -158,16 +186,19 @@ object Driver {
           case e: CancellationException => {
             logger.info("Parser cancelled.")
           }
+        }finally{
+          visitor.finish
         }
+
       }
       def reportError(e: RecognitionException, tok: SVToken){
         val sb = new StringBuilder
-        val toktext = tok.getTextRaw()
+        val toktext = tok.getText
         sb ++= "Parsing failed. Found:%s".format(toktext)
         if ( tok.isEOF ) {
             sb ++= "\n"
         }else{
-          val typetext = LexerTokens.tokenConstText(tok.getType())
+          val typetext = LexerTokens.tokenConstText(tok.getType)
           if ( toktext != typetext ) {
             sb ++= "(%s)\n".format(typetext)
           } else {

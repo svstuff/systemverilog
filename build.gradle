@@ -16,6 +16,7 @@ dependencies{
     compile 'com.typesafe:scalalogging-slf4j_2.10:1.1.0'
     compile 'org.slf4j:slf4j-api:1.7.5'
     compile 'org.slf4j:slf4j-simple:1.7.5'
+    compile 'org.apache.commons:commons-lang3:3.3.2'
     compile files('lib/antlr-4.4-complete.jar')
 }
 

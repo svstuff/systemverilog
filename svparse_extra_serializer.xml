@@ -1,0 +1,5 @@
+<project>
+  <logLevel>DEBUG</logLevel>
+  <debug>debug_serializer</debug>
+  <feature>serialize_to_xml</feature>
+</project>
