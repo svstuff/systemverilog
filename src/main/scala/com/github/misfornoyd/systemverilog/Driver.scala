@@ -139,7 +139,7 @@ object Driver {
         try {
 
           var prevtoktype = 0
-          while( prevtoktype != Token.EOF ){
+          while( (prevtoktype != Token.EOF) && (prevtoktype != LexerTokens.ERROR) ){
             parser.root_element()
             prevtoktype = parser.getCurrentToken().getType()
           }
