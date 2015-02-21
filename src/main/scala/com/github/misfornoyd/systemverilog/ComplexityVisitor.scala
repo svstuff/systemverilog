@@ -94,6 +94,7 @@ class ComplexityVisitor(out: Writer) extends SVVisitor {
     if ( scope.nonEmpty ){
       scope.top.nStatements += 1
     }
+    super.visitStatement_item(ctx)
   }
 
 }
