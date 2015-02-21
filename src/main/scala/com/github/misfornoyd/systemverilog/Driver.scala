@@ -10,7 +10,7 @@ import org.antlr.v4.runtime.atn._
 
 import java.util.concurrent._
 import java.io.File
-import java.io.FileWriter
+import java.io.PrintWriter
 
 import generated._
 
@@ -45,18 +45,17 @@ object Driver {
       }
     })
   }
-  def createSerializerVisitor( parser: SVParser, features: List[String], debugOptions: List[String]) : SerializerVisitor = {
+  def createVisitors(parser: Parser, features: List[String]) : List[SVVisitor] = {
+    val visitors = new collection.mutable.ListBuffer[SVVisitor]
+    if ( features.contains("complexity") ){
+      visitors += new ComplexityVisitor(new PrintWriter("svparse.yml"))
+    }
     if ( features.contains("serialize_to_xml") ){
       val fstream = new java.io.FileOutputStream("svparsetree.gz")
       val gzstream = new java.util.zip.GZIPOutputStream(fstream)
-      if ( debugOptions.contains("debug_serializer") ){
-        new DebugSerializerVisitor(parser, gzstream)
-      }else{
-        new SerializerVisitorImpl(parser, gzstream)
-      }
-    }else{
-      new NullSerializerVisitor
+      visitors += new SerializerVisitor(parser, gzstream)
     }
+    visitors.toList
   }
   def parse( projectPath: String ) {
     println("SVPARSE version %s.\nReading project file: %s".format(version, projectPath))
@@ -152,8 +151,8 @@ object Driver {
           parser.addErrorListener(new DiagnosticErrorListener())
         }
 
-        val visitor = createSerializerVisitor( parser, features, debugOptions )
-        visitor.start
+        val visitors = createVisitors(parser, features)
+        visitors.foreach( _.start )
 
         try {
 
@@ -163,7 +162,7 @@ object Driver {
           var prevtoktype = 0
           while( (prevtoktype != Token.EOF) && (prevtoktype != LexerTokens.ERROR) ){
             val parsetree = parser.root_element()
-            visitor.visit(parsetree)
+            visitors.foreach( _.visit(parsetree) )
             prevtoktype = parser.getCurrentToken().getType()
           }
 
@@ -187,7 +186,7 @@ object Driver {
             logger.info("Parser cancelled.")
           }
         }finally{
-          visitor.finish
+          visitors.foreach( _.finish )
         }
 
       }
