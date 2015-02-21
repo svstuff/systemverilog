@@ -10,7 +10,7 @@ import org.antlr.v4.runtime.atn._
 
 import java.util.concurrent._
 import java.io.File
-import java.io.FileWriter
+import java.io.PrintWriter
 
 import generated._
 
@@ -152,8 +152,10 @@ object Driver {
           parser.addErrorListener(new DiagnosticErrorListener())
         }
 
-        val visitor = createSerializerVisitor( parser, features, debugOptions )
-        visitor.start
+        val complexityWriter = new PrintWriter("svparse.yml")
+        val complexityVisitor = new ComplexityVisitor(complexityWriter)
+        val serializeVisitor = createSerializerVisitor( parser, features, debugOptions )
+        serializeVisitor.start
 
         try {
 
@@ -163,7 +165,9 @@ object Driver {
           var prevtoktype = 0
           while( (prevtoktype != Token.EOF) && (prevtoktype != LexerTokens.ERROR) ){
             val parsetree = parser.root_element()
-            visitor.visit(parsetree)
+            // TODO combine the visitors somehow.
+            complexityVisitor.visit(parsetree)
+            serializeVisitor.visit(parsetree)
             prevtoktype = parser.getCurrentToken().getType()
           }
 
@@ -187,7 +191,8 @@ object Driver {
             logger.info("Parser cancelled.")
           }
         }finally{
-          visitor.finish
+          complexityWriter.close
+          serializeVisitor.finish
         }
 
       }
