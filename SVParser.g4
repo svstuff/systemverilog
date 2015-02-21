@@ -2319,20 +2319,28 @@ defparam_assignment
   ;
 
 interface_declaration
-  : interface_nonansi_header timeunits_declaration? interface_body
-    KW_ENDINTERFACE ( COLON interface_identifier )?
-  | interface_ansi_header timeunits_declaration? interface_body
-     KW_ENDINTERFACE ( COLON interface_identifier )?
+  : attribute_instances KW_INTERFACE lifetime? interface_identifier
+      interface_nonansi_header2 timeunits_declaration? interface_body
+      KW_ENDINTERFACE ( COLON interface_identifier )?
+  | attribute_instances KW_INTERFACE lifetime? interface_identifier
+      interface_ansi_header2 timeunits_declaration? interface_body
+      KW_ENDINTERFACE ( COLON interface_identifier )?
   | attribute_instances KW_INTERFACE interface_identifier LPAREN DOT MUL RPAREN SEMI
-    timeunits_declaration? interface_body
-     KW_ENDINTERFACE ( COLON interface_identifier )?
+      timeunits_declaration? interface_body
+      KW_ENDINTERFACE ( COLON interface_identifier )?
   | KW_EXTERN interface_nonansi_header
   | KW_EXTERN interface_ansi_header
   ;
 
+interface_nonansi_header2
+  : package_import_declaration* parameter_port_list? list_of_ports SEMI
+  ;
 interface_nonansi_header
   : attribute_instances KW_INTERFACE lifetime? interface_identifier
     package_import_declaration* parameter_port_list? list_of_ports SEMI
+  ;
+interface_ansi_header2
+  : package_import_declaration* parameter_port_list? list_of_port_declarations? SEMI
   ;
 interface_ansi_header
   : attribute_instances KW_INTERFACE lifetime? interface_identifier
