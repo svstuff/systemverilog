@@ -1,4 +1,5 @@
 = SystemVerilog Stuff
+:toc: left
 
 == What is this?
 
@@ -19,9 +20,9 @@ Its distinguishing features are:
 Standard open source disclaimer. I've not promised it works with your testbench, nor that it won't melt your hard drive.
 It works for the code I have available and you can have a look at the source code and make an informed decision.
 
-== Authors and Contributors
+== Contributors
 
-Started by @eriklovlie.
+Started by https://github.com/eriklovlie.
 
 == Acknowledgements
 
