@@ -26,4 +26,6 @@ Started by https://github.com/eriklovlie.
 
 == Acknowledgements
 
-Yourkit.com contributed their awesome profiler, thanks!
+* Yourkit.com contributed their awesome profiler, thanks!
+* antlr.org of course
+* asciidoctor
