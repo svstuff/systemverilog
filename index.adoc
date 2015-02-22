@@ -1,0 +1,28 @@
+= SystemVerilog Stuff
+
+== What is this?
+
+A SystemVerilog parser of course. And some other stuff. You can find the source here:
+
+https://github.com/svstuff/systemverilog
+
+Its distinguishing features are:
+
+* open source
+* convenient (`sed -i 's/vcs/simshim.py/g' Makefile`)
+* consumes unprocessed verilog and systemverilog (it will do the preprocessing)
+* error diagnostics are (in theory) quite good (keeps track of include chains and macro instantiations)
+* you can build tools on it (either in Java/Scala or by using the XML output)
+
+== Disclaimer
+
+Standard open source disclaimer. I've not promised it works with your testbench, nor that it won't melt your hard drive.
+It works for the code I have available and you can have a look at the source code and make an informed decision.
+
+== Authors and Contributors
+
+Started by @eriklovlie.
+
+== Acknowledgements
+
+Yourkit.com contributed their awesome profiler, thanks!
