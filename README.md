@@ -1,7 +1,7 @@
 SystemVerilog
 =============
 
-[![Build Status](https://travis-ci.org/misfornoyd/systemverilog.png?branch=master)](https://travis-ci.org/misfornoyd/systemverilog)
+[![Build Status](https://travis-ci.org/svstuff/systemverilog.png?branch=master)](https://travis-ci.org/svstuff/systemverilog)
 
 Parser for SystemVerilog 2012. Can be used for e.g. checking the style against a coding standard.
 
