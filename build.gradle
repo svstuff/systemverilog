@@ -2,7 +2,7 @@ apply plugin:'scala'
 apply plugin:'application'
 apply plugin:'eclipse'
 
-mainClassName = 'com.github.misfornoyd.systemverilog.Driver'
+mainClassName = 'com.github.svstuff.systemverilog.Driver'
 
 applicationDefaultJvmArgs = ["-Xmx6g"]
 
@@ -38,8 +38,8 @@ task antlr(type: Exec) {
     args = ['./regen.py']
     inputs.files files('regen.py', 'SVParser.g4')
     outputs.files files {
-        file("src/main/java/com/github/misfornoyd/systemverilog/generated").listFiles() +
-        file("src/main/scala/com/github/misfornoyd/systemverilog/generated").listFiles()
+        file("src/main/java/com/github/svstuff/systemverilog/generated").listFiles() +
+        file("src/main/scala/com/github/svstuff/systemverilog/generated").listFiles()
     }
 }
 

@@ -16,9 +16,9 @@ it does work for the examples I have access to.
 Status
 ------
 
-See the wiki [status page](http://github.com/misfornoyd/systemverilog/wiki/Status).
+See the wiki [status page](http://github.com/svstuff/systemverilog/wiki/Status).
 
 How to run
 ----------
 
-See the wiki page on [build and running](http://github.com/misfornoyd/systemverilog/wiki/Build).
+See the wiki page on [build and running](http://github.com/svstuff/systemverilog/wiki/Build).

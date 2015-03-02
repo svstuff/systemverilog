@@ -1,4 +1,4 @@
-package com.github.misfornoyd.systemverilog
+package com.github.svstuff.systemverilog
 
 import collection.mutable.Map
 import org.antlr.v4.runtime._

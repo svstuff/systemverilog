@@ -21,7 +21,7 @@ options {
   TokenLabelType=SVToken;
 }
 @header {
-  package com.github.misfornoyd.systemverilog.generated;
+  package com.github.svstuff.systemverilog.generated;
 }
 
 // TODO this is not according to the LRM grammar

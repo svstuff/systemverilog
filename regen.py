@@ -24,7 +24,7 @@ import os
 import subprocess
 
 # Package and dir for generated java/scala code.
-package = "com.github.misfornoyd.systemverilog.generated"
+package = "com.github.svstuff.systemverilog.generated"
 javaDir = os.path.join("src/main/java", package.replace('.', '/'))
 scalaDir = os.path.join("src/main/scala", package.replace('.', '/'))
 

@@ -1,9 +1,9 @@
-package com.github.misfornoyd.systemverilog
+package com.github.svstuff.systemverilog
 
 import java.io._
 import org.antlr.v4.runtime._
 import org.antlr.v4.runtime.tree._
-import com.github.misfornoyd.systemverilog.generated._
+import com.github.svstuff.systemverilog.generated._
 
 /**
   * Write complexity metrics as a YAML sequence.

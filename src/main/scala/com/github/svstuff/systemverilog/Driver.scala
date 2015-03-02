@@ -1,4 +1,4 @@
-package com.github.misfornoyd.systemverilog
+package com.github.svstuff.systemverilog
 
 import io.Source
 import collection.JavaConversions._
