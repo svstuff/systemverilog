@@ -2777,7 +2777,7 @@ postfix_expr
   | primary array_lambda (DOT expression)?
 
     // chained call or member lookup
-  | primary DOT expression
+  | primary DOT postfix_expr
 
     // package or class scope resolution
   | primary COLON2 expression
