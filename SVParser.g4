@@ -2745,6 +2745,8 @@ statement_expression
 
 unaryExpression
   : postfix_expr
+  | ADD2 unaryExpression
+  | SUB2 unaryExpression
   | unary_operator attribute_instances unaryExpression
   ;
 powExpression
