@@ -2197,9 +2197,26 @@ generate_block
   ;
 
 generate_item
-  : module_or_generate_item
-  | interface_or_generate_item
-  | checker_or_generate_item
+    // module_or_generate_item
+  : attribute_instances parameter_override
+  | attribute_instances gate_instantiation
+  | attribute_instances udp_instantiation
+  | attribute_instances module_instantiation
+  | attribute_instances module_common_item
+    // interface_or_generate_item
+  | attribute_instances modport_declaration
+  | attribute_instances extern_tf_declaration
+    // checker_or_generate_item (expanded to avoid overlapping module_common_item)
+  | KW_RAND? data_declaration
+  | checker_declaration
+  | assertion_item_declaration
+  | covergroup_declaration
+  | overload_declaration
+  | genvar_declaration
+  | clocking_declaration
+  | KW_DEFAULT KW_CLOCKING clocking_identifier SEMI
+  | KW_DEFAULT KW_DISABLE KW_IFF expression_or_dist SEMI
+  | SEMI
   ;
 
 interface_or_generate_item
