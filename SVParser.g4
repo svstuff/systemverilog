@@ -2773,7 +2773,8 @@ relationalExpression
   | relationalExpression GT shiftExpression
   | relationalExpression LT_EQ shiftExpression
   | relationalExpression GT_EQ shiftExpression
-  // TODO 'inside' and 'dist'
+  | relationalExpression KW_INSIDE LCURLY open_range_list RCURLY
+  // TODO 'dist'
   ;
 equalityExpression
   : relationalExpression
@@ -2816,7 +2817,7 @@ expression
 postfix_expr
   :
     // randomize method call
-    primary DOT KW_RANDOMIZE randomize_call_expr
+    KW_RANDOMIZE randomize_call_expr
 
     // function call with paramlist and optional lambda (and optional chained call)
   | primary LPAREN list_of_arguments RPAREN array_lambda? (DOT expression)?
