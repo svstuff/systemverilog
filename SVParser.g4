@@ -755,13 +755,11 @@ bins_or_empty
 
 bins_or_options
   : coverage_option
-  | KW_WILDCARD? bins_keyword bin_identifier (LSQUARE covergroup_expression? RSQUARE)? EQ LCURLY
-    covergroup_range_list* RCURLY (KW_WITH LPAREN with_covergroup_expression RPAREN)?
+  | KW_WILDCARD? bins_keyword bin_identifier (LSQUARE covergroup_expression? RSQUARE)? EQ
+    LCURLY covergroup_value_range (COMMA covergroup_value_range)* RCURLY (KW_WITH LPAREN with_covergroup_expression RPAREN)?
     (KW_IFF LPAREN expression RPAREN)?
   | KW_WILDCARD? bins_keyword bin_identifier (LSQUARE covergroup_expression? RSQUARE)? EQ
     cover_point_identifier (KW_WITH LPAREN with_covergroup_expression RPAREN)? (KW_IFF LPAREN expression RPAREN)?
-  | KW_WILDCARD? bins_keyword bin_identifier (LSQUARE covergroup_expression? RSQUARE)? EQ
-    set_covergroup_expression (KW_IFF LPAREN expression RPAREN )?
   | KW_WILDCARD? bins_keyword bin_identifier (LSQUARE RSQUARE)? EQ trans_list (KW_IFF LPAREN expression RPAREN)?
   | bins_keyword bin_identifier (LSQUARE covergroup_expression? RSQUARE)? EQ KW_DEFAULT (KW_IFF RPAREN expression RPAREN)?
   | bins_keyword bin_identifier EQ KW_DEFAULT KW_SEQUENCE (KW_IFF LPAREN expression RPAREN)?
