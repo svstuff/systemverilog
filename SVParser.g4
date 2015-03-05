@@ -2826,19 +2826,19 @@ postfix_expr
     KW_RANDOMIZE randomize_call_expr
 
     // function call with paramlist and optional lambda (and optional chained call)
-  | primary LPAREN list_of_arguments RPAREN array_lambda? (DOT expression)?
+  | primary LPAREN list_of_arguments RPAREN array_lambda? (DOT postfix_expr)?
 
     // function call without paramlist but with lambda (and optional chained call)
-  | primary array_lambda (DOT expression)?
+  | primary array_lambda (DOT postfix_expr)?
 
     // chained call or member lookup
   | primary DOT postfix_expr
 
     // package or class scope resolution
-  | primary COLON2 expression
+  | primary COLON2 postfix_expr
 
     // array subscript with optional chained call and post-inc/dec
-  | primary (LSQUARE array_range_expression? RSQUARE)+ (DOT expression)? inc_or_dec_operator?
+  | primary (LSQUARE array_range_expression? RSQUARE)+ (DOT postfix_expr)? inc_or_dec_operator?
 
     // simple post-inc/dec
   | primary attribute_instances inc_or_dec_operator
