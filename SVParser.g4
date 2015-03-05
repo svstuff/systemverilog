@@ -1287,8 +1287,10 @@ for_step_assignment
   | function_subroutine_call
   ;
 
+// Allowing a single id here introduces an amibuity with an array subscript expression.
+// Let's deal with foreach variables in a parsetree visitor instead.
 loop_variables
-  : index_variable_identifier (COMMA index_variable_identifier?)*
+  : index_variable_identifier (COMMA index_variable_identifier?)+
   | (COMMA index_variable_identifier?)+
   ;
 
