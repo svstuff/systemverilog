@@ -1494,7 +1494,9 @@ variable_assignment
   ;
 
 continuous_assign
-  : KW_ASSIGN drive_strength? delay3? list_of_net_assignments SEMI
+  : KW_ASSIGN drive_strength list_of_net_assignments SEMI
+  | KW_ASSIGN delay3 list_of_net_assignments SEMI
+  | KW_ASSIGN drive_strength delay3 list_of_net_assignments SEMI
   | KW_ASSIGN delay_control? list_of_variable_assignments SEMI
   ;
 
