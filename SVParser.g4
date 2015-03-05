@@ -2743,26 +2743,74 @@ statement_expression
   | expression
   ;
 
-expression
-  : term (
-        binary_operator attribute_instances term
-      | QUE attribute_instances expression COLON term
-    )*
+unaryExpression
+  : postfix_expr
+  | unary_operator attribute_instances unaryExpression
   ;
-
-// ESL term
-term
-  : (
-      unary_operator attribute_instances term
-
-    | inc_or_dec_operator attribute_instances term
-
-      // scoped randomize call
-    | (KW_STD COLON2)? KW_RANDOMIZE randomize_call_expr
-
-    | postfix_expr
-
-  ) inside_expression?
+powExpression
+  : unaryExpression
+  | powExpression MUL2 unaryExpression
+  ;
+multiplicativeExpression
+  : powExpression
+  | multiplicativeExpression MUL powExpression
+  | multiplicativeExpression DIV powExpression
+  | multiplicativeExpression MOD powExpression
+  ;
+additiveExpression
+  : multiplicativeExpression
+  | additiveExpression ADD multiplicativeExpression
+  | additiveExpression SUB multiplicativeExpression
+  ;
+shiftExpression
+  : additiveExpression
+  | shiftExpression LT2 additiveExpression
+  | shiftExpression GT2 additiveExpression
+  ;
+relationalExpression
+  : shiftExpression
+  | relationalExpression LT shiftExpression
+  | relationalExpression GT shiftExpression
+  | relationalExpression LT_EQ shiftExpression
+  | relationalExpression GT_EQ shiftExpression
+  // TODO 'inside' and 'dist'
+  ;
+equalityExpression
+  : relationalExpression
+  | equalityExpression EQ2 relationalExpression
+  | equalityExpression NOT_EQ relationalExpression
+  | equalityExpression EQ3 relationalExpression
+  | equalityExpression NOT_EQ2 relationalExpression
+  | equalityExpression EQ2_Q relationalExpression
+  | equalityExpression NOT_EQ_Q relationalExpression
+  ;
+andExpression
+  : equalityExpression
+  | andExpression AND equalityExpression
+  ;
+exclusiveOrExpression
+  : andExpression
+  | exclusiveOrExpression XOR andExpression
+  | exclusiveOrExpression XOR_INV andExpression
+  | exclusiveOrExpression INV_XOR andExpression
+  ;
+inclusiveOrExpression
+  : exclusiveOrExpression
+  | inclusiveOrExpression OR exclusiveOrExpression
+  ;
+logicalAndExpression
+  : inclusiveOrExpression
+  | logicalAndExpression AND2 inclusiveOrExpression
+  ;
+logicalOrExpression
+  : logicalAndExpression
+  | logicalOrExpression OR2 logicalAndExpression
+  ;
+conditionalExpression
+  : logicalOrExpression (QUE expression COLON conditionalExpression)?
+  ;
+expression
+  : conditionalExpression
   ;
 
 postfix_expr
