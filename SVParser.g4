@@ -2196,17 +2196,39 @@ generate_block
     KW_END (COLON generate_block_identifier)?
   ;
 
+module_if_prog_instantiation
+  : identifier (parameter_value_assignment)? hierarchical_instance (COMMA hierarchical_instance)* SEMI
+  ;
+
 generate_item
-    // module_or_generate_item
+  // module_or_generate_item
   : attribute_instances parameter_override
   | attribute_instances gate_instantiation
   | attribute_instances udp_instantiation
-  | attribute_instances module_instantiation
-  | attribute_instances module_common_item
-    // interface_or_generate_item
+  | attribute_instances module_if_prog_instantiation
+  | assertion_item
+  | bind_directive
+  | continuous_assign
+  | net_alias
+  | initial_construct
+  | final_construct
+  | always_construct
+  | loop_generate_construct
+  | conditional_generate_construct
+  | elaboration_system_task
+
+  // from module_or_generate_item_declaration
+  | package_or_generate_item_declaration
+  | genvar_declaration
+  | clocking_declaration
+  | KW_DEFAULT KW_CLOCKING clocking_identifier SEMI
+  | KW_DEFAULT KW_DISABLE KW_IFF expression_or_dist SEMI
+
+  // interface_or_generate_item
   | attribute_instances modport_declaration
   | attribute_instances extern_tf_declaration
-    // checker_or_generate_item (expanded to avoid overlapping module_common_item)
+
+  // checker_or_generate_item
   | KW_RAND? data_declaration
   | checker_declaration
   | assertion_item_declaration
