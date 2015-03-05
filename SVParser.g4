@@ -3273,8 +3273,7 @@ ps_or_hierarchical_tf_identifier
   ;
 
 ps_or_hierarchical_net_identifier
-  : package_scope? net_identifier
-  | hierarchical_identifier
+  : package_scope? hierarchical_identifier
   ;
 
 ps_or_hierarchical_property_identifier
