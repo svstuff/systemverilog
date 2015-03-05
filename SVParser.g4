@@ -2603,8 +2603,10 @@ named_parameter_assignment
   : DOT parameter_identifier LPAREN param_expression? RPAREN
   ;
 
+// NOTE the expression takes care of identifiers. A parsetree visitor will need to verify that
+// it is semantically meaningful. The alternative syntax is a non-class-type.
 param_expression
-  : data_type
+  : data_type_no_class
   | mintypmax_expression
   ;
 
