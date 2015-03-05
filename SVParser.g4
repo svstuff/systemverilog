@@ -132,7 +132,6 @@ class_item
 
 class_property
   : property_qualifier* data_declaration
-  | KW_CONST class_item_qualifier* data_type const_identifier (EQ constant_expression)? SEMI
   ;
 
 class_method
