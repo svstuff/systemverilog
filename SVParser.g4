@@ -985,7 +985,7 @@ statement_item
   | seq_block
   | wait_statement
   | procedural_assertion_statement
-  | clocking_drive SEMI
+  | clocking_drive_statement
   | randsequence_statement
   | randcase_statement
   | expect_property_statement
@@ -1567,8 +1567,8 @@ delay_control
   | HASH LPAREN mintypmax_expression RPAREN
   ;
 
-clocking_drive
-  : clockvar_expression LT_EQ cycle_delay? expression
+clocking_drive_statement
+  : clockvar_expression LT_EQ cycle_delay expression SEMI
   ;
 
 clockvar
@@ -2781,7 +2781,7 @@ dimension_constant_expression
   ;
 
 statement_expression
-  : expression LT_EQ delay_or_event_control? expression  // non-blocking assignment
+  : expression LT_EQ delay_or_event_control expression  // non-blocking assignment
   | expression EQ delay_or_event_control expression      // blocking assignment
   | expression EQ dynamic_array_new                      // dynamic array init
   | expression EQ class_new                              // object init
