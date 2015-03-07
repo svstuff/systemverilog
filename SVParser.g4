@@ -2961,12 +2961,10 @@ width_constant_expression
 constant_primary
   : constant_concatenation
   | constant_function_call
+  | identifier // TODO ambiguous with above alternative
   | LPAREN constant_mintypmax_expression RPAREN
   | constant_multiple_concatenation
-  | genvar_identifier
   | number
-  | parameter_identifier
-  | specparam_identifier
   ;
 
 module_path_primary
@@ -3013,7 +3011,20 @@ cast
   ;
 
 casting_type
-  : simple_type | constant_primary | signing | KW_STRING | KW_CONST | KW_VOID
+  : integer_type
+  | non_integer_type
+  | signing
+  | KW_STRING
+  | KW_CONST
+  | KW_VOID
+  | casting_type_primary // NOTE: was constant_primary
+  ;
+
+casting_type_primary
+  : identifier
+  | number
+  | constant_concatenation
+  | constant_multiple_concatenation
   ;
 
 // ESL primary
