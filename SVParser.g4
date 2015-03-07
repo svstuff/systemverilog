@@ -790,8 +790,7 @@ select_condition
   ;
 
 bins_expression
-  : variable_identifier
-  | cover_point_identifier (DOT bin_identifier)?
+  : identifier (DOT bin_identifier)?
   ;
 
 covergroup_range_list
