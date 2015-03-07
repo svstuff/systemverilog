@@ -1337,8 +1337,7 @@ randcase_item
 
 conditional_statement
   : unique_priority? KW_IF LPAREN cond_predicate RPAREN statement_or_null
-    (KW_ELSE KW_IF LPAREN cond_predicate RPAREN statement_or_null)*
-    (KW_ELSE statement_or_null)?
+    (KW_ELSE statement_or_null | {_input.LA(1) != KW_ELSE}?)
     ;
 
 unique_priority
