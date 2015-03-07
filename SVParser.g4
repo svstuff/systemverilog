@@ -1589,6 +1589,11 @@ sequence_instance
   : ps_or_hierarchical_sequence_identifier ( LPAREN sequence_list_of_arguments? RPAREN )?
   ;
 
+// Duplicated to avoid ambiguity with expression.
+event_expression_sequence_instance
+  : ps_or_hierarchical_sequence_identifier LPAREN sequence_list_of_arguments RPAREN
+  ;
+
 sequence_list_of_arguments
   : DOT identifier LPAREN sequence_actual_arg? RPAREN
     ( COMMA DOT identifier LPAREN sequence_actual_arg? RPAREN )*
@@ -1832,7 +1837,7 @@ event_control
 
 event_expression
   : edge_identifier? expression (KW_IFF expression)?
-  | sequence_instance (KW_IFF expression)?
+  | event_expression_sequence_instance (KW_IFF expression)?
   | event_expression KW_OR event_expression
   | event_expression COMMA event_expression
   | LPAREN event_expression RPAREN
