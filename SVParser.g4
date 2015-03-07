@@ -24,9 +24,11 @@ options {
   package com.github.svstuff.systemverilog.generated;
 }
 
-// TODO this is not according to the LRM grammar
+// TODO this is not according to the LRM grammar.
+// Note that package_import_declaration is handled by
+//   description.package_item.XYZ.data_declaration.package_import_declaration
 root_element
-  : TIMESCALE | package_import_declaration | description | EOF
+  : TIMESCALE | description | EOF
   ;
 
 description
