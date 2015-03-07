@@ -263,8 +263,7 @@ list_of_cross_items
   ;
 
 cross_item
-  : cover_point_identifier
-  | variable_identifier
+  : identifier
   ;
 
 cross_body
