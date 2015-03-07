@@ -141,7 +141,6 @@ class_method
   | method_qualifier* task_declaration
   | KW_PURE KW_VIRTUAL class_item_qualifier* method_prototype SEMI
   | KW_EXTERN method_qualifier* method_prototype SEMI
-  | KW_EXTERN method_qualifier* class_constructor_prototype
   ;
 
 task_declaration
@@ -241,10 +240,6 @@ function_prototype
 
 function_data_type_or_implicit
   : data_type_or_void | implicit_data_type
-  ;
-
-class_constructor_prototype
-  : KW_FUNCTION KW_NEW (LPAREN tf_port_list? RPAREN)? SEMI
   ;
 
 class_constraint
