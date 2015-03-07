@@ -2608,7 +2608,16 @@ random_qualifier
   ;
 
 simple_type
-  : integer_type | non_integer_type | ps_type_identifier | ps_parameter_identifier
+  : integer_type
+  | non_integer_type
+  | simple_type_identifier
+  ;
+
+simple_type_identifier
+  : identifier
+  | KW_LOCAL COLON2 identifier
+  | (package_scope | class_scope) identifier
+  | (identifier (LSQUARE constant_expression RSQUARE)? DOT )+ identifier
   ;
 
 enum_base_type
@@ -3280,12 +3289,12 @@ ps_or_hierarchical_property_identifier
   ;
 
 ps_parameter_identifier
-  : (package_scope | class_scope)? parameter_identifier
-  | (generate_block_identifier (LSQUARE constant_expression RSQUARE)? DOT )* parameter_identifier
+  : (package_scope | class_scope)? identifier
+  | (identifier (LSQUARE constant_expression RSQUARE)? DOT )* identifier
   ;
 
 ps_type_identifier
-  : (KW_LOCAL COLON2 | package_scope)? type_identifier
+  : (KW_LOCAL COLON2 | package_scope)? identifier
   ;
 
 attribute_instances
