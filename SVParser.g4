@@ -981,7 +981,6 @@ statement
   : (block_identifier COLON)? attribute_instances statement_item
   ;
 
-// ESL statement
 statement_item
   : procedural_continuous_assignment SEMI
   | case_statement
@@ -1641,7 +1640,6 @@ clocking_event
   | AT_SIGN LPAREN event_expression RPAREN
   ;
 
-// ESL sequence method call
 sequence_method_call
   : sequence_instance DOT method_identifier
   ;
@@ -1731,7 +1729,6 @@ system_tf_call
   | system_tf_identifier LPAREN data_type (COMMA expression)? RPAREN
   ;
 
-// ESL call
 subroutine_call
   : tf_call
   | system_tf_call
@@ -1763,7 +1760,6 @@ scope_randomize_call
   : (KW_STD COLON2)? KW_RANDOMIZE LPAREN variable_identifier_list? RPAREN (KW_WITH constraint_block)?
   ;
 
-// ESL randomize call
 method_randomize_call
   : method_call_root DOT KW_RANDOMIZE attribute_instances
     (LPAREN (randomize_param_list | KW_NULL)? RPAREN)?
@@ -2962,7 +2958,6 @@ msb_constant_expression
   : constant_expression
   ;
 
-// ESL range
 range_expression
   : expression
   | msb_constant_expression QUE lsb_constant_expression
@@ -2993,7 +2988,6 @@ module_path_primary
   ;
 
 // TODO
-// ESL primary
 primary
   : primary_literal
   | primary_identifier
@@ -3043,7 +3037,6 @@ casting_type_primary
   | constant_multiple_concatenation
   ;
 
-// ESL primary
 // FIXME does not handle nested calls and things like obj.getchildren()[0].method();
 primary_call
   : primary_identifier LPAREN list_of_arguments RPAREN

@@ -51,7 +51,7 @@ object Driver {
       visitors += new BlockStyleVisitor()
     }
     if ( features.contains("complexity") ){
-      visitors += new ComplexityVisitor(new PrintWriter("svparse.yml"))
+      visitors += new ComplexityVisitor(parser, new PrintWriter("svparse.yml"))
     }
     if ( features.contains("serialize_to_xml") ){
       val fstream = new java.io.FileOutputStream("svparsetree.gz")
