@@ -869,8 +869,8 @@ variable_decl_assignment
   ;
 
 class_new
-  : class_scope? KW_NEW (LPAREN list_of_arguments RPAREN)?
-  | KW_NEW expression
+  : class_scope? KW_NEW
+    (LPAREN list_of_arguments RPAREN | {_input.LA(1) != LPAREN}? expression)?
   ;
 
 dynamic_array_new
