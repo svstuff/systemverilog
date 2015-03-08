@@ -24,9 +24,11 @@ options {
   package com.github.svstuff.systemverilog.generated;
 }
 
-// TODO this is not according to the LRM grammar
+// TODO this is not according to the LRM grammar.
+// Note that package_import_declaration is handled by
+//   description.package_item.XYZ.data_declaration.package_import_declaration
 root_element
-  : TIMESCALE | package_import_declaration | description | EOF
+  : TIMESCALE | description | EOF
   ;
 
 description
@@ -60,22 +62,14 @@ bind_target_instance_list
   ;
 
 bind_instantiation
-  : program_instantiation
-  | module_instantiation
-  | interface_instantiation
+  : element_instantiation
   | checker_instantiation
   ;
 
-program_instantiation
-  : program_identifier (parameter_value_assignment)? hierarchical_instance (COMMA hierarchical_instance)* SEMI
-  ;
-
-interface_instantiation
-  : interface_identifier (parameter_value_assignment)? hierarchical_instance (COMMA hierarchical_instance)* SEMI
-  ;
-
-module_instantiation
-  : module_identifier (parameter_value_assignment)? hierarchical_instance (COMMA hierarchical_instance)* SEMI
+// module, interface, program instantiation
+element_instantiation
+  : identifier (parameter_value_assignment)? hierarchical_instance
+      (COMMA hierarchical_instance)* SEMI
   ;
 
 // Note: the LRM has an optional block for list_of_port_connections, but that's
@@ -131,8 +125,7 @@ class_item
   ;
 
 class_property
-  : property_qualifier* data_declaration
-  | KW_CONST class_item_qualifier* data_type const_identifier (EQ constant_expression)? SEMI
+  : property_qualifier* class_data_declaration
   ;
 
 class_method
@@ -140,7 +133,6 @@ class_method
   | method_qualifier* task_declaration
   | KW_PURE KW_VIRTUAL class_item_qualifier* method_prototype SEMI
   | KW_EXTERN method_qualifier* method_prototype SEMI
-  | KW_EXTERN method_qualifier* class_constructor_prototype
   ;
 
 task_declaration
@@ -225,13 +217,32 @@ block_item_declaration
   | attribute_instances let_declaration
   ;
 
-// TODO make sure we treat "a = b;" as an assignment statement rather than a vardecl with implicit type.
-// Otherwise we have an ambiguity between vardecl and assignment statement.
+// TODO make sure we treat "a = b;" as an assignment statement rather than a
+// vardecl with implicit type. Otherwise we have an ambiguity between vardecl and
+// assignment statement.
 variable_declaration
-  : KW_CONST KW_VAR? lifetime? data_type_or_implicit list_of_variable_decl_assignments SEMI
+  : KW_CONST KW_VAR? lifetime? data_type_or_implicit
+      list_of_variable_decl_assignments SEMI
   | KW_VAR lifetime? data_type_or_implicit list_of_variable_decl_assignments SEMI
   | lifetime data_type_or_implicit list_of_variable_decl_assignments SEMI
   | data_type list_of_variable_decl_assignments SEMI
+  ;
+
+// Duplicated variable_declaration where lifetime cannot be first token.
+// That would be ambiguous in a class property context (due to STATIC).
+class_variable_declaration
+  : KW_CONST KW_VAR? lifetime? data_type_or_implicit
+      list_of_variable_decl_assignments SEMI
+  | KW_VAR lifetime? data_type_or_implicit list_of_variable_decl_assignments SEMI
+  | data_type_or_implicit list_of_variable_decl_assignments SEMI
+  ;
+
+// Duplicated data_declaration to avoid ambiguity due to STATIC.
+class_data_declaration
+  : class_variable_declaration
+  | type_declaration
+  | package_import_declaration
+  | net_type_declaration
   ;
 
 function_prototype
@@ -240,10 +251,6 @@ function_prototype
 
 function_data_type_or_implicit
   : data_type_or_void | implicit_data_type
-  ;
-
-class_constructor_prototype
-  : KW_FUNCTION KW_NEW (LPAREN tf_port_list? RPAREN)? SEMI
   ;
 
 class_constraint
@@ -264,8 +271,7 @@ list_of_cross_items
   ;
 
 cross_item
-  : cover_point_identifier
-  | variable_identifier
+  : identifier
   ;
 
 cross_body
@@ -378,10 +384,14 @@ package_or_generate_item_declaration
   | SEMI
   ;
 
+// NOTE delay_control is optional, however when missing this alternative overlaps
+// with data_declaration.
 net_declaration
-  : net_type (drive_strength | charge_strength)? (KW_VECTORED | KW_SCALARED)? data_type_or_implicit delay3? list_of_net_decl_assignments SEMI
-  | net_type_identifier delay_control? list_of_net_decl_assignments SEMI
-  | KW_INTERCONNECT implicit_data_type (HASH delay_value)? net_identifier unpacked_dimension* (COMMA net_identifier unpacked_dimension*)? SEMI
+  : net_type (drive_strength | charge_strength)? (KW_VECTORED | KW_SCALARED)?
+      data_type_or_implicit delay3? list_of_net_decl_assignments SEMI
+  | KW_INTERCONNECT implicit_data_type (HASH delay_value)? net_identifier
+      unpacked_dimension* (COMMA net_identifier unpacked_dimension*)? SEMI
+  | net_type_identifier delay_control list_of_net_decl_assignments SEMI
   ;
 
 extern_constraint_declaration
@@ -756,13 +766,11 @@ bins_or_empty
 
 bins_or_options
   : coverage_option
-  | KW_WILDCARD? bins_keyword bin_identifier (LSQUARE covergroup_expression? RSQUARE)? EQ LCURLY
-    covergroup_range_list* RCURLY (KW_WITH LPAREN with_covergroup_expression RPAREN)?
+  | KW_WILDCARD? bins_keyword bin_identifier (LSQUARE covergroup_expression? RSQUARE)? EQ
+    LCURLY covergroup_value_range (COMMA covergroup_value_range)* RCURLY (KW_WITH LPAREN with_covergroup_expression RPAREN)?
     (KW_IFF LPAREN expression RPAREN)?
   | KW_WILDCARD? bins_keyword bin_identifier (LSQUARE covergroup_expression? RSQUARE)? EQ
     cover_point_identifier (KW_WITH LPAREN with_covergroup_expression RPAREN)? (KW_IFF LPAREN expression RPAREN)?
-  | KW_WILDCARD? bins_keyword bin_identifier (LSQUARE covergroup_expression? RSQUARE)? EQ
-    set_covergroup_expression (KW_IFF LPAREN expression RPAREN )?
   | KW_WILDCARD? bins_keyword bin_identifier (LSQUARE RSQUARE)? EQ trans_list (KW_IFF LPAREN expression RPAREN)?
   | bins_keyword bin_identifier (LSQUARE covergroup_expression? RSQUARE)? EQ KW_DEFAULT (KW_IFF RPAREN expression RPAREN)?
   | bins_keyword bin_identifier EQ KW_DEFAULT KW_SEQUENCE (KW_IFF LPAREN expression RPAREN)?
@@ -793,8 +801,7 @@ select_condition
   ;
 
 bins_expression
-  : variable_identifier
-  | cover_point_identifier (DOT bin_identifier)?
+  : identifier (DOT bin_identifier)?
   ;
 
 covergroup_range_list
@@ -877,8 +884,8 @@ variable_decl_assignment
   ;
 
 class_new
-  : class_scope? KW_NEW (LPAREN list_of_arguments RPAREN)?
-  | KW_NEW expression
+  : class_scope? KW_NEW
+    (LPAREN list_of_arguments RPAREN | {_input.LA(1) != LPAREN}? expression)?
   ;
 
 dynamic_array_new
@@ -988,7 +995,7 @@ statement_item
   | seq_block
   | wait_statement
   | procedural_assertion_statement
-  | clocking_drive SEMI
+  | clocking_drive_statement
   | randsequence_statement
   | randcase_statement
   | expect_property_statement
@@ -1287,8 +1294,10 @@ for_step_assignment
   | function_subroutine_call
   ;
 
+// Allowing a single id here introduces an amibuity with an array subscript expression.
+// Let's deal with foreach variables in a parsetree visitor instead.
 loop_variables
-  : index_variable_identifier (COMMA index_variable_identifier?)*
+  : index_variable_identifier (COMMA index_variable_identifier?)+
   | (COMMA index_variable_identifier?)+
   ;
 
@@ -1338,8 +1347,7 @@ randcase_item
 
 conditional_statement
   : unique_priority? KW_IF LPAREN cond_predicate RPAREN statement_or_null
-    (KW_ELSE KW_IF LPAREN cond_predicate RPAREN statement_or_null)*
-    (KW_ELSE statement_or_null)?
+    (KW_ELSE statement_or_null | {_input.LA(1) != KW_ELSE}?)
     ;
 
 unique_priority
@@ -1492,7 +1500,9 @@ variable_assignment
   ;
 
 continuous_assign
-  : KW_ASSIGN drive_strength? delay3? list_of_net_assignments SEMI
+  : KW_ASSIGN drive_strength list_of_net_assignments SEMI
+  | KW_ASSIGN delay3 list_of_net_assignments SEMI
+  | KW_ASSIGN drive_strength delay3 list_of_net_assignments SEMI
   | KW_ASSIGN delay_control? list_of_variable_assignments SEMI
   ;
 
@@ -1513,16 +1523,19 @@ net_assignment
   ;
 
 delay3
-  : HASH delay_value | HASH LPAREN mintypmax_expression ( COMMA mintypmax_expression ( COMMA mintypmax_expression )? )? RPAREN
+  : HASH delay_value
+  | HASH LPAREN mintypmax_expression ( COMMA mintypmax_expression
+      ( COMMA mintypmax_expression )? )? RPAREN
   ;
 
 delay2
-  : HASH delay_value | HASH LPAREN mintypmax_expression ( COMMA mintypmax_expression )? RPAREN
+  : HASH delay_value
+  | HASH LPAREN mintypmax_expression ( COMMA mintypmax_expression )? RPAREN
   ;
 
+// NOTE should only accept real_number and unsigned_number.
 delay_value
-  : unsigned_number
-  | real_number
+  : number
   | ps_identifier
   | LIT_TIME
   | KW_1STEP
@@ -1566,8 +1579,8 @@ delay_control
   | HASH LPAREN mintypmax_expression RPAREN
   ;
 
-clocking_drive
-  : clockvar_expression LT_EQ cycle_delay? expression
+clocking_drive_statement
+  : clockvar_expression LT_EQ cycle_delay expression SEMI
   ;
 
 clockvar
@@ -1586,6 +1599,11 @@ cycle_delay
 
 sequence_instance
   : ps_or_hierarchical_sequence_identifier ( LPAREN sequence_list_of_arguments? RPAREN )?
+  ;
+
+// Duplicated to avoid ambiguity with expression.
+event_expression_sequence_instance
+  : ps_or_hierarchical_sequence_identifier LPAREN sequence_list_of_arguments RPAREN
   ;
 
 sequence_list_of_arguments
@@ -1822,8 +1840,7 @@ dist_weight
   ;
 
 event_control
-  : AT_SIGN hierarchical_identifier
-  | AT_SIGN LPAREN event_expression RPAREN
+  : AT_SIGN LPAREN event_expression RPAREN
   | AT_SIGN MUL
   | AT_SIGN LPAREN MUL RPAREN
   | AT_SIGN ps_or_hierarchical_sequence_identifier
@@ -1831,7 +1848,7 @@ event_control
 
 event_expression
   : edge_identifier? expression (KW_IFF expression)?
-  | sequence_instance (KW_IFF expression)?
+  | event_expression_sequence_instance (KW_IFF expression)?
   | event_expression KW_OR event_expression
   | event_expression COMMA event_expression
   | LPAREN event_expression RPAREN
@@ -2056,7 +2073,8 @@ pull_gate_instance
   ;
 
 udp_instantiation
-  : udp_identifier drive_strength? delay2? udp_instance (COMMA udp_instance)* SEMI
+  : udp_identifier drive_strength delay2? udp_instance (COMMA udp_instance)* SEMI
+  | udp_identifier delay2 udp_instance (COMMA udp_instance)* SEMI
   ;
 
 udp_instance
@@ -2102,8 +2120,7 @@ clocking_skew
 
 module_common_item
   : module_or_generate_item_declaration
-  | interface_instantiation
-  | program_instantiation
+  | element_instantiation
   | assertion_item
   | bind_directive
   | continuous_assign
@@ -2125,7 +2142,6 @@ module_or_generate_item
   : attribute_instances parameter_override
   | attribute_instances gate_instantiation
   | attribute_instances udp_instantiation
-  | attribute_instances module_instantiation
   | attribute_instances module_common_item
   ;
 
@@ -2173,7 +2189,7 @@ conditional_generate_construct
 
 if_generate_construct
   : KW_IF LPAREN constant_expression RPAREN generate_block
-    (KW_ELSE generate_block)?
+    (KW_ELSE generate_block | {_input.LA(1) != KW_ELSE}?)
   ;
 
 case_generate_construct
@@ -2194,10 +2210,49 @@ generate_block
     KW_END (COLON generate_block_identifier)?
   ;
 
+module_if_prog_instantiation
+  : identifier (parameter_value_assignment)? hierarchical_instance (COMMA hierarchical_instance)* SEMI
+  ;
+
 generate_item
-  : module_or_generate_item
-  | interface_or_generate_item
-  | checker_or_generate_item
+  // module_or_generate_item
+  : attribute_instances parameter_override
+  | attribute_instances gate_instantiation
+  | attribute_instances udp_instantiation
+  | attribute_instances module_if_prog_instantiation
+  | assertion_item
+  | bind_directive
+  | continuous_assign
+  | net_alias
+  | initial_construct
+  | final_construct
+  | always_construct
+  | loop_generate_construct
+  | conditional_generate_construct
+  | elaboration_system_task
+
+  // from module_or_generate_item_declaration
+  | package_or_generate_item_declaration
+  | genvar_declaration
+  | clocking_declaration
+  | KW_DEFAULT KW_CLOCKING clocking_identifier SEMI
+  | KW_DEFAULT KW_DISABLE KW_IFF expression_or_dist SEMI
+
+  // interface_or_generate_item
+  | attribute_instances modport_declaration
+  | attribute_instances extern_tf_declaration
+
+  // checker_or_generate_item
+  | KW_RAND? data_declaration
+  | checker_declaration
+  | assertion_item_declaration
+  | covergroup_declaration
+  | overload_declaration
+  | genvar_declaration
+  | clocking_declaration
+  | KW_DEFAULT KW_CLOCKING clocking_identifier SEMI
+  | KW_DEFAULT KW_DISABLE KW_IFF expression_or_dist SEMI
+  | SEMI
   ;
 
 interface_or_generate_item
@@ -2569,7 +2624,16 @@ random_qualifier
   ;
 
 simple_type
-  : integer_type | non_integer_type | ps_type_identifier | ps_parameter_identifier
+  : integer_type
+  | non_integer_type
+  | simple_type_identifier
+  ;
+
+simple_type_identifier
+  : identifier
+  | KW_LOCAL COLON2 identifier
+  | (package_scope | class_scope) identifier
+  | (identifier (LSQUARE constant_expression RSQUARE)? DOT )+ identifier
   ;
 
 enum_base_type
@@ -2601,8 +2665,10 @@ named_parameter_assignment
   : DOT parameter_identifier LPAREN param_expression? RPAREN
   ;
 
+// NOTE the expression takes care of identifiers. A parsetree visitor will need to verify that
+// it is semantically meaningful. The alternative syntax is a non-class-type.
 param_expression
-  : data_type
+  : data_type_no_class
   | mintypmax_expression
   ;
 
@@ -2734,7 +2800,7 @@ dimension_constant_expression
   ;
 
 statement_expression
-  : expression LT_EQ delay_or_event_control? expression  // non-blocking assignment
+  : expression LT_EQ delay_or_event_control expression  // non-blocking assignment
   | expression EQ delay_or_event_control expression      // blocking assignment
   | expression EQ dynamic_array_new                      // dynamic array init
   | expression EQ class_new                              // object init
@@ -2743,47 +2809,98 @@ statement_expression
   | expression
   ;
 
-expression
-  : term (
-        binary_operator attribute_instances term
-      | QUE attribute_instances expression COLON term
-    )*
+unaryExpression
+  : postfix_expr
+  | ADD2 unaryExpression
+  | SUB2 unaryExpression
+  | unary_operator attribute_instances unaryExpression
   ;
-
-// ESL term
-term
-  : (
-      unary_operator attribute_instances term
-
-    | inc_or_dec_operator attribute_instances term
-
-      // scoped randomize call
-    | (KW_STD COLON2)? KW_RANDOMIZE randomize_call_expr
-
-    | postfix_expr
-
-  ) inside_expression?
+powExpression
+  : unaryExpression
+  | powExpression MUL2 unaryExpression
+  ;
+multiplicativeExpression
+  : powExpression
+  | multiplicativeExpression MUL powExpression
+  | multiplicativeExpression DIV powExpression
+  | multiplicativeExpression MOD powExpression
+  ;
+additiveExpression
+  : multiplicativeExpression
+  | additiveExpression ADD multiplicativeExpression
+  | additiveExpression SUB multiplicativeExpression
+  ;
+shiftExpression
+  : additiveExpression
+  | shiftExpression LT2 additiveExpression
+  | shiftExpression GT2 additiveExpression
+  ;
+relationalExpression
+  : shiftExpression
+  | relationalExpression LT shiftExpression
+  | relationalExpression GT shiftExpression
+  | relationalExpression LT_EQ shiftExpression
+  | relationalExpression GT_EQ shiftExpression
+  | relationalExpression KW_INSIDE LCURLY open_range_list RCURLY
+  // TODO 'dist'
+  ;
+equalityExpression
+  : relationalExpression
+  | equalityExpression EQ2 relationalExpression
+  | equalityExpression NOT_EQ relationalExpression
+  | equalityExpression EQ3 relationalExpression
+  | equalityExpression NOT_EQ2 relationalExpression
+  | equalityExpression EQ2_Q relationalExpression
+  | equalityExpression NOT_EQ_Q relationalExpression
+  ;
+andExpression
+  : equalityExpression
+  | andExpression AND equalityExpression
+  ;
+exclusiveOrExpression
+  : andExpression
+  | exclusiveOrExpression XOR andExpression
+  | exclusiveOrExpression XOR_INV andExpression
+  | exclusiveOrExpression INV_XOR andExpression
+  ;
+inclusiveOrExpression
+  : exclusiveOrExpression
+  | inclusiveOrExpression OR exclusiveOrExpression
+  ;
+logicalAndExpression
+  : inclusiveOrExpression
+  | logicalAndExpression AND2 inclusiveOrExpression
+  ;
+logicalOrExpression
+  : logicalAndExpression
+  | logicalOrExpression OR2 logicalAndExpression
+  ;
+conditionalExpression
+  : logicalOrExpression (QUE expression COLON conditionalExpression)?
+  ;
+expression
+  : conditionalExpression
   ;
 
 postfix_expr
   :
     // randomize method call
-    primary DOT KW_RANDOMIZE randomize_call_expr
+    KW_RANDOMIZE randomize_call_expr
 
     // function call with paramlist and optional lambda (and optional chained call)
-  | primary LPAREN list_of_arguments RPAREN array_lambda? (DOT expression)?
+  | primary LPAREN list_of_arguments RPAREN array_lambda? (DOT postfix_expr)?
 
     // function call without paramlist but with lambda (and optional chained call)
-  | primary array_lambda (DOT expression)?
+  | primary array_lambda (DOT postfix_expr)?
 
     // chained call or member lookup
-  | primary DOT expression
+  | primary DOT postfix_expr
 
     // package or class scope resolution
-  | primary COLON2 expression
+  | primary COLON2 postfix_expr
 
     // array subscript with optional chained call and post-inc/dec
-  | primary (LSQUARE array_range_expression? RSQUARE)+ (DOT expression)? inc_or_dec_operator?
+  | primary (LSQUARE array_range_expression? RSQUARE)+ (DOT postfix_expr)? inc_or_dec_operator?
 
     // simple post-inc/dec
   | primary attribute_instances inc_or_dec_operator
@@ -2860,12 +2977,10 @@ width_constant_expression
 constant_primary
   : constant_concatenation
   | constant_function_call
+  | identifier // TODO ambiguous with above alternative
   | LPAREN constant_mintypmax_expression RPAREN
   | constant_multiple_concatenation
-  | genvar_identifier
   | number
-  | parameter_identifier
-  | specparam_identifier
   ;
 
 module_path_primary
@@ -2912,7 +3027,20 @@ cast
   ;
 
 casting_type
-  : simple_type | constant_primary | signing | KW_STRING | KW_CONST | KW_VOID
+  : integer_type
+  | non_integer_type
+  | signing
+  | KW_STRING
+  | KW_CONST
+  | KW_VOID
+  | casting_type_primary // NOTE: was constant_primary
+  ;
+
+casting_type_primary
+  : identifier
+  | number
+  | constant_concatenation
+  | constant_multiple_concatenation
   ;
 
 // ESL primary
@@ -3014,12 +3142,10 @@ binary_module_path_operator
   : EQ2 | NOT_EQ | AND2 | OR2 | AND | OR | XOR | XOR_INV | INV_XOR
   ;
 
-// TODO
+// TODO consider actually scanning numbers into different tokens.
+// For now deferring this to a parsetree visitor.
 number : LIT_NUM ;
-decimal_number : LIT_NUM ;
-integral_number : number ;
-real_number : number ;
-unsigned_number : number ;
+integral_number : LIT_NUM ;
 
 identifier
   : simple_identifier
@@ -3179,8 +3305,7 @@ ps_or_hierarchical_tf_identifier
   ;
 
 ps_or_hierarchical_net_identifier
-  : package_scope? net_identifier
-  | hierarchical_identifier
+  : package_scope? hierarchical_identifier
   ;
 
 ps_or_hierarchical_property_identifier
@@ -3189,12 +3314,12 @@ ps_or_hierarchical_property_identifier
   ;
 
 ps_parameter_identifier
-  : (package_scope | class_scope)? parameter_identifier
-  | (generate_block_identifier (LSQUARE constant_expression RSQUARE)? DOT )* parameter_identifier
+  : (package_scope | class_scope)? identifier
+  | (identifier (LSQUARE constant_expression RSQUARE)? DOT )* identifier
   ;
 
 ps_type_identifier
-  : (KW_LOCAL COLON2 | package_scope)? type_identifier
+  : (KW_LOCAL COLON2 | package_scope)? identifier
   ;
 
 attribute_instances
