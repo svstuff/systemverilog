@@ -1840,8 +1840,7 @@ dist_weight
   ;
 
 event_control
-  : AT_SIGN hierarchical_identifier
-  | AT_SIGN LPAREN event_expression RPAREN
+  : AT_SIGN LPAREN event_expression RPAREN
   | AT_SIGN MUL
   | AT_SIGN LPAREN MUL RPAREN
   | AT_SIGN ps_or_hierarchical_sequence_identifier
