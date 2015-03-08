@@ -133,7 +133,7 @@ class_item
   ;
 
 class_property
-  : property_qualifier* data_declaration
+  : property_qualifier* class_data_declaration
   ;
 
 class_method
@@ -225,13 +225,32 @@ block_item_declaration
   | attribute_instances let_declaration
   ;
 
-// TODO make sure we treat "a = b;" as an assignment statement rather than a vardecl with implicit type.
-// Otherwise we have an ambiguity between vardecl and assignment statement.
+// TODO make sure we treat "a = b;" as an assignment statement rather than a
+// vardecl with implicit type. Otherwise we have an ambiguity between vardecl and
+// assignment statement.
 variable_declaration
-  : KW_CONST KW_VAR? lifetime? data_type_or_implicit list_of_variable_decl_assignments SEMI
+  : KW_CONST KW_VAR? lifetime? data_type_or_implicit
+      list_of_variable_decl_assignments SEMI
   | KW_VAR lifetime? data_type_or_implicit list_of_variable_decl_assignments SEMI
   | lifetime data_type_or_implicit list_of_variable_decl_assignments SEMI
   | data_type list_of_variable_decl_assignments SEMI
+  ;
+
+// Duplicated variable_declaration where lifetime cannot be first token.
+// That would be ambiguous in a class property context (due to STATIC).
+class_variable_declaration
+  : KW_CONST KW_VAR? lifetime? data_type_or_implicit
+      list_of_variable_decl_assignments SEMI
+  | KW_VAR lifetime? data_type_or_implicit list_of_variable_decl_assignments SEMI
+  | data_type_or_implicit list_of_variable_decl_assignments SEMI
+  ;
+
+// Duplicated data_declaration to avoid ambiguity due to STATIC.
+class_data_declaration
+  : class_variable_declaration
+  | type_declaration
+  | package_import_declaration
+  | net_type_declaration
   ;
 
 function_prototype
