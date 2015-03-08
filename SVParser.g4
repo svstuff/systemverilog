@@ -62,22 +62,14 @@ bind_target_instance_list
   ;
 
 bind_instantiation
-  : program_instantiation
-  | module_instantiation
-  | interface_instantiation
+  : element_instantiation
   | checker_instantiation
   ;
 
-program_instantiation
-  : program_identifier (parameter_value_assignment)? hierarchical_instance (COMMA hierarchical_instance)* SEMI
-  ;
-
-interface_instantiation
-  : interface_identifier (parameter_value_assignment)? hierarchical_instance (COMMA hierarchical_instance)* SEMI
-  ;
-
-module_instantiation
-  : module_identifier (parameter_value_assignment)? hierarchical_instance (COMMA hierarchical_instance)* SEMI
+// module, interface, program instantiation
+element_instantiation
+  : identifier (parameter_value_assignment)? hierarchical_instance
+      (COMMA hierarchical_instance)* SEMI
   ;
 
 // Note: the LRM has an optional block for list_of_port_connections, but that's
@@ -2082,7 +2074,8 @@ pull_gate_instance
   ;
 
 udp_instantiation
-  : udp_identifier drive_strength? delay2? udp_instance (COMMA udp_instance)* SEMI
+  : udp_identifier drive_strength delay2? udp_instance (COMMA udp_instance)* SEMI
+  | udp_identifier delay2 udp_instance (COMMA udp_instance)* SEMI
   ;
 
 udp_instance
@@ -2128,8 +2121,7 @@ clocking_skew
 
 module_common_item
   : module_or_generate_item_declaration
-  | interface_instantiation
-  | program_instantiation
+  | element_instantiation
   | assertion_item
   | bind_directive
   | continuous_assign
@@ -2151,7 +2143,6 @@ module_or_generate_item
   : attribute_instances parameter_override
   | attribute_instances gate_instantiation
   | attribute_instances udp_instantiation
-  | attribute_instances module_instantiation
   | attribute_instances module_common_item
   ;
 
