@@ -392,10 +392,14 @@ package_or_generate_item_declaration
   | SEMI
   ;
 
+// NOTE delay_control is optional, however when missing this alternative overlaps
+// with data_declaration.
 net_declaration
-  : net_type (drive_strength | charge_strength)? (KW_VECTORED | KW_SCALARED)? data_type_or_implicit delay3? list_of_net_decl_assignments SEMI
-  | net_type_identifier delay_control? list_of_net_decl_assignments SEMI
-  | KW_INTERCONNECT implicit_data_type (HASH delay_value)? net_identifier unpacked_dimension* (COMMA net_identifier unpacked_dimension*)? SEMI
+  : net_type (drive_strength | charge_strength)? (KW_VECTORED | KW_SCALARED)?
+      data_type_or_implicit delay3? list_of_net_decl_assignments SEMI
+  | KW_INTERCONNECT implicit_data_type (HASH delay_value)? net_identifier
+      unpacked_dimension* (COMMA net_identifier unpacked_dimension*)? SEMI
+  | net_type_identifier delay_control list_of_net_decl_assignments SEMI
   ;
 
 extern_constraint_declaration
