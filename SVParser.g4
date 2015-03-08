@@ -1527,16 +1527,19 @@ net_assignment
   ;
 
 delay3
-  : HASH delay_value | HASH LPAREN mintypmax_expression ( COMMA mintypmax_expression ( COMMA mintypmax_expression )? )? RPAREN
+  : HASH delay_value
+  | HASH LPAREN mintypmax_expression ( COMMA mintypmax_expression
+      ( COMMA mintypmax_expression )? )? RPAREN
   ;
 
 delay2
-  : HASH delay_value | HASH LPAREN mintypmax_expression ( COMMA mintypmax_expression )? RPAREN
+  : HASH delay_value
+  | HASH LPAREN mintypmax_expression ( COMMA mintypmax_expression )? RPAREN
   ;
 
+// NOTE should only accept real_number and unsigned_number.
 delay_value
-  : unsigned_number
-  | real_number
+  : number
   | ps_identifier
   | LIT_TIME
   | KW_1STEP
@@ -3145,12 +3148,10 @@ binary_module_path_operator
   : EQ2 | NOT_EQ | AND2 | OR2 | AND | OR | XOR | XOR_INV | INV_XOR
   ;
 
-// TODO
+// TODO consider actually scanning numbers into different tokens.
+// For now deferring this to a parsetree visitor.
 number : LIT_NUM ;
-decimal_number : LIT_NUM ;
-integral_number : number ;
-real_number : number ;
-unsigned_number : number ;
+integral_number : LIT_NUM ;
 
 identifier
   : simple_identifier
