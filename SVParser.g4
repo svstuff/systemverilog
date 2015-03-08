@@ -2199,7 +2199,7 @@ conditional_generate_construct
 
 if_generate_construct
   : KW_IF LPAREN constant_expression RPAREN generate_block
-    (KW_ELSE generate_block)?
+    (KW_ELSE generate_block | {_input.LA(1) != KW_ELSE}?)
   ;
 
 case_generate_construct
