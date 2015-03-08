@@ -12,6 +12,10 @@ sealed abstract class SVToken (val tokindex:Int, val toktype:Int, val ctx:Contex
     toktype == Token.EOF
   }
 
+  def inMacro() : Boolean = {
+    ctx.isInstanceOf[MacroContext]
+  }
+
   override def getChannel() : Int = {
     Token.DEFAULT_CHANNEL
   }

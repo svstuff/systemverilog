@@ -47,6 +47,9 @@ object Driver {
   }
   def createVisitors(parser: Parser, features: List[String]) : List[SVVisitor] = {
     val visitors = new collection.mutable.ListBuffer[SVVisitor]
+    if ( features.contains("block_style") ){
+      visitors += new BlockStyleVisitor()
+    }
     if ( features.contains("complexity") ){
       visitors += new ComplexityVisitor(new PrintWriter("svparse.yml"))
     }
