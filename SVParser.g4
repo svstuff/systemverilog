@@ -2830,6 +2830,8 @@ shiftExpression
   : additiveExpression
   | shiftExpression LT2 additiveExpression
   | shiftExpression GT2 additiveExpression
+  | shiftExpression LT3 additiveExpression
+  | shiftExpression GT3 additiveExpression
   ;
 relationalExpression
   : shiftExpression
