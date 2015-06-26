@@ -3102,7 +3102,7 @@ class_scope
   ;
 
 class_type
-  : class_type_base (COLON2 class_identifier parameter_value_assignment?)* packed_dimension*
+  : class_type_base (COLON2 class_identifier parameter_value_assignment?)*
   ;
 
 class_type_base
