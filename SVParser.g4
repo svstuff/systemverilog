@@ -44,7 +44,7 @@ description
 
 // Note: LRM is wrong, can't have ; here
 bind_directive
-  : KW_BIND bind_target_scope (COLON bind_target_instance_list)? bind_instantiation
+  : KW_BIND bind_target_scope COLON bind_target_instance_list bind_instantiation
   | KW_BIND bind_target_instance bind_instantiation
   ;
 
@@ -878,9 +878,8 @@ list_of_variable_decl_assignments
   ;
 
 variable_decl_assignment
-  : variable_identifier variable_dimension* (EQ expression)?
+  : variable_identifier variable_dimension* (EQ (dynamic_array_new | expression))?
   | class_variable_identifier EQ class_new
-  | dynamic_array_variable_identifier unsized_dimension variable_dimension* (EQ dynamic_array_new)?
   ;
 
 class_new
@@ -1878,10 +1877,8 @@ event_trigger
   | SUB_GT2 delay_or_event_control? expression SEMI
   ;
 
-// TODO clearly ambiguous
 disable_statement
-  : KW_DISABLE hierarchical_identifier SEMI # disable_statement_task_identifier
-  | KW_DISABLE hierarchical_identifier SEMI # disable_statement_block_identifier
+  : KW_DISABLE hierarchical_identifier SEMI # disable_statement_task_or_block
   | KW_DISABLE KW_FORK SEMI                 # disable_statement_fork
   ;
 
@@ -2478,10 +2475,11 @@ port_declaration
 
 list_of_port_declarations
   : LPAREN port_declaration ( COMMA port_declaration )* RPAREN
-  | LPAREN RPAREN
+  // list_of_ports gets the empty braces
   ;
 
-port: port_expression?
+port
+  : port_expression?
   | DOT port_identifier LPAREN ( port_expression )? RPAREN
   ;
 
@@ -3290,8 +3288,7 @@ ps_or_hierarchical_array_identifier
   ;
 
 ps_or_hierarchical_sequence_identifier
-  : package_scope? sequence_identifier
-  | hierarchical_identifier
+  : package_scope? hierarchical_identifier
   ;
 
 ps_or_hierarchical_tf_identifier
