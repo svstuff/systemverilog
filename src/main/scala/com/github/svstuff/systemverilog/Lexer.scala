@@ -115,6 +115,9 @@ sealed class Lexer(
   }
 
   def scanIncludeFile( line : Int, col : Int, filePath : String ) {
+    if ( filePath.endsWith(".v") ){
+      return
+    }
     logger.debug(s"Scanning include file: <${filePath}>")
 
     // attempt to open a source for the include file.

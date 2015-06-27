@@ -17,7 +17,7 @@ dependencies{
     compile 'org.slf4j:slf4j-api:1.7.5'
     compile 'org.slf4j:slf4j-simple:1.7.5'
     compile 'org.apache.commons:commons-lang3:3.3.2'
-    compile files('lib/antlr-4.4-complete.jar')
+    compile files('lib/antlr-4.5-complete.jar')
 }
 
 compileScala {
@@ -44,3 +44,4 @@ task antlr(type: Exec) {
 }
 
 compileJava.dependsOn antlr
+compileJava.options.compilerArgs << '-implicit:none'

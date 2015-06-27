@@ -102,7 +102,7 @@ class_declaration
   ;
 
 class_inherit
-  : KW_EXTENDS class_type (LPAREN list_of_arguments RPAREN)?
+  : KW_EXTENDS class_type_extends (LPAREN list_of_arguments RPAREN)?
   ;
 
 class_implement
@@ -324,18 +324,11 @@ list_of_arguments
 
 program_declaration
   : program_nonansi_header timeunits_declaration? program_item* KW_ENDPROGRAM (COLON program_identifier)?
-  | program_ansi_header timeunits_declaration? non_port_program_item* KW_ENDPROGRAM (COLON program_identifier)?
-  | attribute_instances KW_PROGRAM program_identifier LPAREN DOT MUL RPAREN SEMI timeunits_declaration? program_item* KW_ENDPROGRAM (COLON program_identifier)?
   | KW_EXTERN program_nonansi_header
-  | KW_EXTERN program_ansi_header
   ;
 
 program_nonansi_header
-  : attribute_instances KW_PROGRAM lifetime? program_identifier package_import_declaration* parameter_port_list? list_of_ports SEMI
-  ;
-
-program_ansi_header
-  : attribute_instances KW_PROGRAM lifetime? program_identifier package_import_declaration* parameter_port_list? list_of_port_declarations? SEMI
+  : attribute_instances KW_PROGRAM lifetime? program_identifier package_import_declaration* parameter_port_list? list_of_ports? SEMI
   ;
 
 program_item
@@ -384,14 +377,12 @@ package_or_generate_item_declaration
   | SEMI
   ;
 
-// NOTE delay_control is optional, however when missing this alternative overlaps
-// with data_declaration.
 net_declaration
-  : net_type (drive_strength | charge_strength)? (KW_VECTORED | KW_SCALARED)?
-      data_type_or_implicit delay3? list_of_net_decl_assignments SEMI
+  // TODO hacked to not collide with data_declaration
+  : net_type packed_dimension* delay3? list_of_net_decl_assignments SEMI
+  | net_type_identifier delay_control list_of_net_decl_assignments SEMI
   | KW_INTERCONNECT implicit_data_type (HASH delay_value)? net_identifier
       unpacked_dimension* (COMMA net_identifier unpacked_dimension*)? SEMI
-  | net_type_identifier delay_control list_of_net_decl_assignments SEMI
   ;
 
 extern_constraint_declaration
@@ -1942,26 +1933,10 @@ task_prototype
   ;
 
 module_declaration
-  : module_nonansi_header timeunits_declaration? module_item*
-    KW_ENDMODULE (COLON module_identifier)?
-  | module_ansi_header timeunits_declaration? non_port_module_item*
-    KW_ENDMODULE (COLON module_identifier)?
-  | attribute_instances module_keyword lifetime? module_identifier
-    LPAREN DOT MUL RPAREN SEMI
+  : module_keyword lifetime? module_identifier
+    package_import_declaration* parameter_port_list? list_of_ports? SEMI
     timeunits_declaration? module_item*
     KW_ENDMODULE (COLON module_identifier)?
-  | KW_EXTERN module_nonansi_header
-  | KW_EXTERN module_ansi_header
-  ;
-
-module_nonansi_header
-  : attribute_instances module_keyword lifetime? module_identifier
-    package_import_declaration* parameter_port_list? list_of_ports SEMI
-  ;
-
-module_ansi_header
-  : attribute_instances module_keyword lifetime? module_identifier
-    package_import_declaration* parameter_port_list? list_of_port_declarations? SEMI
   ;
 
 module_keyword
@@ -2123,7 +2098,6 @@ module_common_item
   | always_construct
   | loop_generate_construct
   | conditional_generate_construct
-  | elaboration_system_task
   ;
 
 module_item
@@ -2367,32 +2341,18 @@ defparam_assignment
   ;
 
 interface_declaration
-  : attribute_instances KW_INTERFACE lifetime? interface_identifier
-      interface_nonansi_header2 timeunits_declaration? interface_body
-      KW_ENDINTERFACE ( COLON interface_identifier )?
-  | attribute_instances KW_INTERFACE lifetime? interface_identifier
+  : KW_INTERFACE lifetime? interface_identifier
       interface_ansi_header2 timeunits_declaration? interface_body
       KW_ENDINTERFACE ( COLON interface_identifier )?
-  | attribute_instances KW_INTERFACE interface_identifier LPAREN DOT MUL RPAREN SEMI
-      timeunits_declaration? interface_body
-      KW_ENDINTERFACE ( COLON interface_identifier )?
-  | KW_EXTERN interface_nonansi_header
   | KW_EXTERN interface_ansi_header
   ;
 
-interface_nonansi_header2
-  : package_import_declaration* parameter_port_list? list_of_ports SEMI
-  ;
-interface_nonansi_header
-  : attribute_instances KW_INTERFACE lifetime? interface_identifier
-    package_import_declaration* parameter_port_list? list_of_ports SEMI
-  ;
 interface_ansi_header2
-  : package_import_declaration* parameter_port_list? list_of_port_declarations? SEMI
+  : package_import_declaration* parameter_port_list? list_of_ports? SEMI
   ;
 interface_ansi_header
   : attribute_instances KW_INTERFACE lifetime? interface_identifier
-    package_import_declaration* parameter_port_list? list_of_port_declarations? SEMI
+    package_import_declaration* parameter_port_list? list_of_ports? SEMI
   ;
 
 type_declaration
@@ -2460,7 +2420,7 @@ parameter_port_declaration
   ;
 
 list_of_ports
-  : LPAREN port ( COMMA port )* RPAREN
+  : LPAREN (port? COMMA)* port? RPAREN
   ;
 
 port_declaration
@@ -2473,13 +2433,9 @@ port_declaration
     )
   ;
 
-list_of_port_declarations
-  : LPAREN port_declaration ( COMMA port_declaration )* RPAREN
-  // list_of_ports gets the empty braces
-  ;
-
 port
-  : port_expression?
+  : port_declaration
+  | port_expression
   | DOT port_identifier LPAREN ( port_expression )? RPAREN
   ;
 
@@ -2896,10 +2852,13 @@ postfix_expr
   | primary COLON2 postfix_expr
 
     // array subscript with optional chained call and post-inc/dec
-  | primary (LSQUARE array_range_expression? RSQUARE)+ (DOT postfix_expr)? inc_or_dec_operator?
+  | primary (LSQUARE array_range_expression? RSQUARE)+ (DOT postfix_expr)?
+
+    // array subscript with optional chained call and post-inc/dec
+  | primary (LSQUARE array_range_expression? RSQUARE)+ inc_or_dec_operator?
 
     // simple post-inc/dec
-  | primary attribute_instances inc_or_dec_operator
+  | primary inc_or_dec_operator
 
     // either simple primary expression or function call with no paramlist and no lambda.
   | primary
@@ -3102,11 +3061,16 @@ class_scope
   ;
 
 class_type
-  : class_type_base (COLON2 class_identifier parameter_value_assignment?)*
+  : (DOLLAR_UNIT COLON2)?
+    ID parameter_value_assignment?
+    (COLON2 ID parameter_value_assignment?)*
   ;
 
-class_type_base
-  : (DOLLAR_UNIT COLON2)? class_identifier parameter_value_assignment?
+// Duplicated class_type to avoid context sensitivity in class decl.
+class_type_extends
+  : (DOLLAR_UNIT COLON2)?
+    ID parameter_value_assignment?
+    (COLON2 ID parameter_value_assignment?)*
   ;
 
 ps_class_identifier

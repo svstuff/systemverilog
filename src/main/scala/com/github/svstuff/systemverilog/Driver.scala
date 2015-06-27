@@ -152,6 +152,8 @@ object Driver {
         if ( detectAmbiguations ){
           parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
           parser.addErrorListener(new DiagnosticErrorListener())
+        }else{
+          parser.getInterpreter().setPredictionMode(PredictionMode.SLL);
         }
 
         val visitors = createVisitors(parser, features)
