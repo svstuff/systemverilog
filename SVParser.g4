@@ -1665,7 +1665,7 @@ net_lvalue
   ;
 
 variable_lvalue
-  : (implicit_class_handle DOT | package_scope)? ID (DOT ID)* select
+  : (implicit_class_handle DOT | package_scope)? variable_identifier (DOT variable_identifier)* select
   | LCURLY variable_lvalue (COMMA variable_lvalue)* RCURLY
   | assignment_pattern_expression_type? assignment_pattern_variable_lvalue
   | streaming_concatenation
