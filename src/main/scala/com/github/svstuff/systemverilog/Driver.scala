@@ -19,6 +19,14 @@ object Driver {
   val version = "0.1"
 
   def main( args: Array[String] ) {
+
+    Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler {
+      override def uncaughtException(t: Thread, e: Throwable){
+        e.printStackTrace()
+        sys.exit(1)
+      }
+    })
+
     try {
       parse(args(0))
     } catch {
@@ -237,7 +245,7 @@ object Driver {
             printContextChain(sb, e.ctx, e.line, e.col)
             sb ++= e.ctx.what()
             logger.error(sb.toString)
-            System.exit(1)
+            sys.exit(1)
           }
           case e: Throwable => {
             // make sure the parser is interrupted
