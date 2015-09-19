@@ -173,7 +173,12 @@ sealed class Lexer(
     }
 
     // parameter substitution
-    val text = defines.expand(d, params)
+    val text = try {
+      defines.expand(d, params)
+    }catch{
+      case e : ExpandError => throw lexerError(e.msg, currentContext, line, col)
+    }
+
     logger.trace(s"Expanded define ${d.id} to: <${text}>")
 
     // Scan the substituted text in a new context

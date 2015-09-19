@@ -54,12 +54,15 @@ sealed class Defines extends com.typesafe.scalalogging.slf4j.Logging {
               // NOTE: for now just assume there is only one level to this madness.
               call_name ++= expandTokens(indent+1, actuals(formal.index).ptokens, List.empty[ActualParam])
             }
+            case _ => assert(false)
           }
         }
 
         // Ok, we have the full name now, look it up in the macro dictionary.
-        // TODO raise a lexer error if we can't find the define. For now bomb out.
-        val callee = defines(call_name.toString)
+        val callee = defines.get(call_name.toString) match {
+          case Some(d) => d
+          case None => throw new ExpandError(s"Macro not found: ${call_name.toString}")
+        }
 
         // recursively expand the callee
         expand0(indent + 1, callee, call_actuals.map(a => propagateOuterActual(indent, a, actuals)))
@@ -87,6 +90,8 @@ sealed class Defines extends com.typesafe.scalalogging.slf4j.Logging {
   }
   def logIndent(indent: Int) = ".." * indent
 }
+
+sealed class ExpandError(val msg: String) extends RuntimeException(msg) {}
 
 sealed class Define(
   val ctx: Context, val line: Int, val col: Int,
