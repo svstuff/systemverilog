@@ -59,14 +59,29 @@ sealed class Defines extends com.typesafe.scalalogging.slf4j.Logging {
         }
 
         // Ok, we have the full name now, look it up in the macro dictionary.
-        val callee = defines.get(call_name.toString) match {
-          case Some(d) => d
-          case None => throw new ExpandError(s"Macro not found: ${call_name.toString}")
+        val (callee, rest) = defines.get(call_name.toString) match {
+          case Some(d) => (d, "")
+          case None => macroCallFallback(call_name.toString)
         }
 
         // recursively expand the callee
-        expand0(indent + 1, callee, call_actuals.map(a => propagateOuterActual(indent, a, actuals)))
+        expand0(
+          indent + 1,
+          callee,
+          call_actuals.map(a => propagateOuterActual(indent, a, actuals))) + rest
       }
+    }
+  }
+  def macroCallFallback(fullName: String) : (Define, String) = {
+    // Did not find macro for the fully expanded name. See issue #11.
+    // Try to find a shorter name for which we do have a macro.
+    // FIXME this is a terrible hack, but it's difficult to spend time on a proper solution
+    // when the LRM is so vague that I'm not sure what the right behavior should be. For now
+    // I will just await more example code that breaks (but works in other parsers).
+    val name = fullName.takeWhile( (c) => { c.isLetterOrDigit || c == '_' } )
+    return defines.get(name) match {
+      case Some(d) => (d, fullName.substring(name.length))
+      case None => throw new ExpandError(s"Macro not found: ${name.toString}")
     }
   }
   def propagateOuterActual(indent: Int, inner: ActualParam, outerActuals: List[ActualParam]): ActualParam = {
