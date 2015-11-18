@@ -62,7 +62,9 @@ sealed class Lexer(
   tokens : BlockingQueue[SVToken],
   incdirs : Seq[String],
   printTokens : Boolean,
-  skipEnqueue: Boolean) extends com.typesafe.scalalogging.slf4j.Logging {
+  skipEnqueue: Boolean,
+  fileContextListener: Option[FileContextListener] = None
+) extends com.typesafe.scalalogging.slf4j.Logging {
 
   implicit val codec = Codec("UTF-8")
   codec.onMalformedInput(CodingErrorAction.REPLACE)
@@ -96,8 +98,18 @@ sealed class Lexer(
 
     // scan each source file
     for ( f <- sources ) {
-      currentContext = new FileContext(null, 0,0, f)
-      scanSourceFile(f)
+      val fctx = new FileContext(null, 0,0, f)
+      currentContext = fctx
+
+      fileContextListener match {
+        case Some(listener) =>
+          listener.enterSourceFile(fctx)
+          scanSourceFile(f)
+          listener.exitSourceFile()
+        case None =>
+          scanSourceFile(f)
+      }
+
     }
     currentContext = null
     produce( Token.EOF, 0,0)
@@ -122,10 +134,20 @@ sealed class Lexer(
 
     // we succeeded in opening include file, so switch context and scan it.
     val prevContext = currentContext
-    currentContext = new FileContext(prevContext, line, col, actualFilePath)
+    val fileContext = new FileContext(prevContext, line, col, actualFilePath) 
+    currentContext = fileContext
 
     try {
-      scanSource( source )
+
+      fileContextListener match {
+        case Some(listener) =>
+          listener.enterInclude(prevContext, fileContext)
+          scanSource(source)
+          listener.exitInclude()
+        case None =>
+          scanSource(source)
+      }
+
     } finally {
       source.close
     }
@@ -978,6 +1000,13 @@ case class FileContext ( parent : Context, line : Int, col : Int, id : String ) 
   def fileName() : String = id
   def where() : String = fileName
   def what() : String = ""
+}
+
+trait FileContextListener {
+  def enterSourceFile(ctx:Context): Unit
+  def exitSourceFile(): Unit
+  def enterInclude(currentCtx:Context, includeCtx:Context): Unit
+  def exitInclude(): Unit
 }
 
 sealed class LexerError(val msg: String, val ctx: Context, val line: Int, val col: Int) extends RuntimeException(msg) {
