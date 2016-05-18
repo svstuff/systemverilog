@@ -256,8 +256,25 @@ object Driver {
         }
       }
       def runLexer() {
-        val lexer = new Lexer(tokens, incdirs, printTokens, skipTokenEnqueue)
+        // TODO output the actual DAG of file dependencies instead of just a flat list.
+        val filesyaml = new PrintWriter("svparse_files.yml")
+        val ctxListener = new FileContextListener {
+          val seen = collection.mutable.Set[String]()
+          override def enterSourceFile(ctx:Context){
+            val added = seen.add(ctx.fileName)
+            if ( added ) {
+              filesyaml.write(s"- ${ctx.fileName}\n")
+            }
+          }
+          override def enterInclude(currentCtx:Context, includeCtx:Context){
+            enterSourceFile(includeCtx)
+          }
+          override def exitSourceFile(){}
+          override def exitInclude(){}
+        }
+        val lexer = new Lexer(tokens, incdirs, printTokens, skipTokenEnqueue, Some(ctxListener))
         lexer.scan(sources, defines)
+        filesyaml.close
       }
     })
 
