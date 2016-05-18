@@ -3,3 +3,5 @@
 *.log
 generated/
 build/
+
+.vscode/*.VC.db
