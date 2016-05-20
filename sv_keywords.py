@@ -262,10 +262,10 @@ keywords = (
   'min',
   'max',
   'unique_index',
-  'reverse', # TODO 'with' clause shall be a compiler error
+  'reverse',  # TODO 'with' clause shall be a compiler error
   'sort',
   'rsort',
-  'shuffle', # TODO 'with' clause shall be a compiler error
+  'shuffle',  # TODO 'with' clause shall be a compiler error
   'sum',
   'product',
 )
