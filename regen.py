@@ -166,7 +166,7 @@ def get_keyword_tokens():
 	return tokens
 
 def regen():
-	print "Running ANTLR and generating parser java source..."
+	print("Running ANTLR and generating parser java source...")
 
 	tokens_keywords = get_keyword_tokens()
 
