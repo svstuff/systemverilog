@@ -20,14 +20,6 @@ dependencies{
     compile files('lib/antlr-4.4-complete.jar')
 }
 
-compileScala {
-    scalaCompileOptions.useCompileDaemon = true
-}
-
-tasks.withType(ScalaCompile) {
-    scalaCompileOptions.useAnt = false
-}
-
 task wrapper(type: Wrapper) {
     gradleVersion = '2.13'
 }
