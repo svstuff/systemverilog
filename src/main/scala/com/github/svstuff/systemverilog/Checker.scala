@@ -7,7 +7,7 @@ import org.antlr.v4.runtime.misc._
 
 import generated._
 
-sealed class Checker(writer: java.io.PrintWriter) extends SVParserBaseVisitor[Unit] with com.typesafe.scalalogging.slf4j.Logging {
+sealed class Checker(writer: java.io.PrintWriter) extends SVParserBaseVisitor[Unit] with com.typesafe.scalalogging.StrictLogging {
 
   object IdVisitor extends SVParserBaseVisitor[String] {
     override def visitIdentifier(ctx: SVParser.IdentifierContext) : String = {
