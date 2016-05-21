@@ -29,7 +29,7 @@ Result = namedtuple('Result', ['testname', 'testout', 'status'])
 
 
 def run_test(test):
-    cmd = ['./build/install/svparse/bin/svparse',
+    cmd = ['driver.exe',
            os.path.join(test, "project.xml")]
     testenv = os.environ.copy()
     testenv['SVPARSE_EXTRA'] = 'svparse_extra_test.xml'
@@ -38,10 +38,10 @@ def run_test(test):
     testdir, testname = os.path.split(test)
     testout = os.path.join(testdir, '{}.log'.format(testname))
     with open(testout, 'w') as f:
-        f.write(rawout)
+        f.write(rawout.decode())
     if pid.returncode != 0:
         return Result(test, testout, 'FAIL')
-    if detected_antlr_warnings(rawout):
+    if detected_antlr_warnings(rawout.decode()):
         return Result(test, testout, 'WARN')
     return Result(test, testout, 'PASS')
 
@@ -55,21 +55,22 @@ def main():
     n_pass = 0
     n_fail = 0
     p = Pool(4)
-    for result in p.imap_unordered(run_test, [f for f in glob.glob("parsertests/*") if os.path.isdir(f)]):
+    test_list = [f for f in glob.glob("parsertests/*") if os.path.isdir(f)]
+    for result in p.imap_unordered(run_test, test_list):
         n_total += 1
         status = statuscolor[result.status] + result.status + bcolors.ENDC
         if result.status != 'PASS':
             if result.status == 'FAIL':
                 n_fail += 1
-            print "{}: {} - {}".format(status, result.testname, result.testout)
+            print("{}: {} - {}".format(status, result.testname, result.testout))
         else:
             n_pass += 1
-            print "{}: {}".format(status, result.testname)
+            print("{}: {}".format(status, result.testname))
 
-    print "Summary:"
-    print "- PASS: {}".format(n_pass)
-    print "- FAIL: {}".format(n_fail)
-    print "- WARN: {}".format(n_total - n_fail - n_pass)
+    print("Summary:")
+    print("- PASS: {}".format(n_pass))
+    print("- FAIL: {}".format(n_fail))
+    print("- WARN: {}".format(n_total - n_fail - n_pass))
     if n_fail == 0:
         return 0
     return 1
