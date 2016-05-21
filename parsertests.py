@@ -2,7 +2,6 @@
 
 import sys
 import os
-import os.path as path
 import glob
 import subprocess as sp
 from collections import namedtuple
@@ -29,8 +28,7 @@ Result = namedtuple('Result', ['testname', 'testout', 'status'])
 
 
 def run_test(test):
-    cmd = ['./build/install/svparse/bin/svparse',
-           os.path.join(test, "project.xml")]
+    cmd = ['./build/install/bin/svparse', os.path.join(test, "project.xml")]
     testenv = os.environ.copy()
     testenv['SVPARSE_EXTRA'] = 'svparse_extra_test.xml'
     pid = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.STDOUT, env=testenv)

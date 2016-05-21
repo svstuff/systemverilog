@@ -8,11 +8,11 @@ import re
 
 
 def run_test(test, check_tokens=True):
-    cmd = ['./build/install/svparse/bin/svparse', test]
+    cmd = ['./build/install/bin/svparse', test ]
     pid = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
     _, rawout = pid.communicate()
     if pid.returncode != 0:
-        print rawout
+        print(rawout)
         return 1
 
     if not check_tokens:
@@ -33,19 +33,19 @@ def run_test(test, check_tokens=True):
     mismatch = False
 
     if len(actual) != len(expected):
-        print "ERROR, not the same number of tokens ({} actual vs {} expected)".format(len(actual), len(expected))
+        print("ERROR, not the same number of tokens ({} actual vs {} expected)".format(len(actual), len(expected)))
         mismatch = True
     else:
         for a, e in zip(actual, expected):
             if a != e:
-                print "ERROR, expected <{}> but got <{}>".format(e, a)
+                print("ERROR, expected <{}> but got <{}>".format(e, a))
                 mismatch = True
 
     if mismatch:
-        print "ACTUAL: -------------------------"
-        print "\n".join(actual)
-        print "\nEXPECTED: -----------------------"
-        print "\n".join(expected)
+        print("ACTUAL: -------------------------")
+        print("\n".join(actual))
+        print("\nEXPECTED: -----------------------")
+        print("\n".join(expected))
         return 1
 
     return 0
@@ -59,11 +59,11 @@ def main():
     if not os.path.isfile(test):
         raise Exception("Test not found: {}".format(test))
 
-    print "Running test: {}".format(test)
+    print("Running test: {}".format(test))
     if run_test(test) == 0:
-        print "OK test passed"
+        print("OK test passed")
     else:
-        print "ERROR test failed"
+        print("ERROR test failed")
 
 if __name__ == "__main__":
     sys.exit(main())

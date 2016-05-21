@@ -7,17 +7,18 @@ buildscript {
     }
 }
 apply plugin:'scala'
-apply plugin:'application'
 apply plugin:'eclipse'
 
-mainClassName = 'com.github.svstuff.systemverilog.Driver'
-
-applicationDefaultJvmArgs = ["-Xmx6g"]
+// inspired by the properties from the 'application' pluin, these are used in tasks
+String applicationName = "svparser"
+String applicationDefaultJvmArgs = "-Xmx6g"
+String mainClassName = 'com.github.svstuff.systemverilog.Driver'
 
 repositories{
     mavenCentral()
     mavenLocal()
 }
+
 
 dependencies{
     compile 'org.scala-lang:scala-library:2.11.8'
@@ -29,9 +30,11 @@ dependencies{
     compile files('lib/antlr-4.4-complete.jar')
 }
 
+
 task wrapper(type: Wrapper) {
     gradleVersion = '2.13'
 }
+
 
 task antlr(type: Exec) {
     workingDir = "${projectDir}"
@@ -44,10 +47,19 @@ task antlr(type: Exec) {
     }
 }
 
+
 compileJava.dependsOn antlr
 
 
-// Make fat jar ~ 14MB
+// Configure jar task
+jar {
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
+}
+
+
+// Make fat jar~ 14MB
 task fatJar(type: Jar) {
     manifest {
         attributes 'Main-Class': mainClassName
@@ -121,3 +133,27 @@ task slimJar(type: proguard.gradle.ProGuardTask) {
         scala.concurrent.forkjoin.LinkedTransferQueue$PaddedAtomicReference cleanMe; \
     }'
 }
+
+
+task installDist {
+    inputs.file slimJar
+    outputs.dir "${buildDir}/install/lib"
+    outputs.dir "${buildDir}/install/bin"
+    doLast {
+        copy {
+            from slimJar
+            into "${buildDir}/install/lib"
+            rename { "${applicationName}.jar" }
+        }
+    }
+    doLast {
+        File runnerDir = file("${buildDir}/install/bin")
+        runnerDir.mkdir()
+        File linRunner = file(new File(runnerDir, applicationName))
+        linRunner.text = "#!/bin/bash\njava ${applicationDefaultJvmArgs} -jar ${buildDir}/install/lib/${applicationName}.jar \$@"
+        linRunner.executable = true
+        File winRunner = file(new File(runnerDir, "${applicationName}.bat"))
+        winRunner.text = "java ${applicationDefaultJvmArgs} -jar ${buildDir}/install/lib/${applicationName}.jar %*"            
+    }
+} 
+

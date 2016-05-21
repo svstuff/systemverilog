@@ -47,9 +47,9 @@ def parse(xmlfile, arglist, defines):
             if os.path.isfile(arg):
                 xmlfile.write('  <source>{}</source>\n'.format(arg))
             else:
-                print "Ignoring non-file option: {}".format(arg)
+                print("Ignoring non-file option: {}".format(arg))
         else:
-            print "Ignoring unknown option: {}".format(arg)
+            print("Ignoring unknown option: {}".format(arg))
 
 
 def p(path):
