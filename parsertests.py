@@ -29,7 +29,7 @@ Result = namedtuple('Result', ['testname', 'testout', 'status'])
 
 
 def run_test(test):
-    cmd = ['driver.exe',
+    cmd = ['./build/install/svparse/bin/svparse',
            os.path.join(test, "project.xml")]
     testenv = os.environ.copy()
     testenv['SVPARSE_EXTRA'] = 'svparse_extra_test.xml'
