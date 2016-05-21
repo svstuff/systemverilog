@@ -2,5 +2,12 @@ language: java
 jdk:
   - oraclejdk7
   - openjdk7
-before_script: ./gradlew installDist
+addons:
+  apt:
+    packages:
+      - python3
+before_script: 
+  - virtualenv -p /usr/bin/python3 --no-site-packages myenv
+  - source myenv/bin/activate
+  - ./gradlew installDist
 script: ./parsertests.py
