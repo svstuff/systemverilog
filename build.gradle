@@ -1,24 +1,15 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'net.sf.proguard:proguard-gradle:5.2.1'
-    }
-}
 apply plugin:'scala'
+apply plugin:'application'
 apply plugin:'eclipse'
 
-// inspired by the properties from the 'application' pluin, these are used in tasks
-String applicationName = "svparser"
-String applicationDefaultJvmArgs = "-Xmx6g"
-String mainClassName = 'com.github.svstuff.systemverilog.Driver'
+mainClassName = 'com.github.svstuff.systemverilog.Driver'
+
+applicationDefaultJvmArgs = ["-Xmx6g"]
 
 repositories{
     mavenCentral()
     mavenLocal()
 }
-
 
 dependencies{
     compile 'org.scala-lang:scala-library:2.11.8'
@@ -30,11 +21,17 @@ dependencies{
     compile files('lib/antlr-4.4-complete.jar')
 }
 
+compileScala {
+    scalaCompileOptions.useCompileDaemon = true
+}
+
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.useAnt = false
+}
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.13'
 }
-
 
 task antlr(type: Exec) {
     workingDir = "${projectDir}"
@@ -47,113 +44,4 @@ task antlr(type: Exec) {
     }
 }
 
-
 compileJava.dependsOn antlr
-
-
-// Configure jar task
-jar {
-    manifest {
-        attributes 'Main-Class': mainClassName
-    }
-}
-
-
-// Make fat jar~ 14MB
-task fatJar(type: Jar) {
-    manifest {
-        attributes 'Main-Class': mainClassName
-    }
-    baseName = project.name + '-fat'
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    with jar
-}
-
-
-// Make slim jar by optimizing fat jar ~ 1.6MB
-task slimJar(type: proguard.gradle.ProGuardTask) {
-    dependsOn fatJar
-    injars project.fatJar.archivePath.toString()
-    libraryjars "${System.getProperty('java.home')}/lib/rt.jar"
-    
-    outjars project.fatJar.archivePath.toString().replaceFirst(/-fat\.jar$/, '-slim.jar')
-
-
-    // Keep main class
-    keepclasseswithmembers 'public class * { \
-        public static void main(java.lang.String[]); \
-    }'
-    
-
-    // Options for libs
-
-    // antlr library omits this
-    dontwarn 'org.antlr.stringtemplate.StringTemplate'
-    
-    // dynamically loaded constructors
-    keepclasseswithmembers 'class * { \
-        public <init>(org.antlr.v4.codegen.model.decl.StructDecl,java.lang.String); \
-    }'
-    keep 'class org.antlr.v4.codegen.model.decl.StructDecl'
-
-    // superflurous note about dynamically accessing 'clone', as clone is always kept
-    dontnote 'org.apache.commons.lang3.ObjectUtils'
-
-    
-    // Options for SCALA
-    // See http://proguard.sourceforge.net/#manual/examples.html#scala
-    
-    dontwarn 'scala.**'
-    
-    keepclassmembers 'class * { \
-        ** MODULE$; \
-    }'
-
-    keepclassmembernames 'class scala.concurrent.forkjoin.ForkJoinPool { \
-        long eventCount; \
-        int  workerCounts; \
-        int  runControl; \
-        scala.concurrent.forkjoin.ForkJoinPool$WaitQueueNode syncStack; \
-        scala.concurrent.forkjoin.ForkJoinPool$WaitQueueNode spareStack; \
-    }'
-    
-    keepclassmembernames 'class scala.concurrent.forkjoin.ForkJoinWorkerThread { \
-        int base; \
-        int sp; \
-        int runState; \
-    }'
-    
-    keepclassmembernames 'class scala.concurrent.forkjoin.ForkJoinTask { \
-        int status; \
-    }'
-    
-    keepclassmembernames 'class scala.concurrent.forkjoin.LinkedTransferQueue { \
-        scala.concurrent.forkjoin.LinkedTransferQueue$PaddedAtomicReference head; \
-        scala.concurrent.forkjoin.LinkedTransferQueue$PaddedAtomicReference tail; \
-        scala.concurrent.forkjoin.LinkedTransferQueue$PaddedAtomicReference cleanMe; \
-    }'
-}
-
-
-task installDist {
-    inputs.file slimJar
-    outputs.dir "${buildDir}/install/lib"
-    outputs.dir "${buildDir}/install/bin"
-    doLast {
-        copy {
-            from slimJar
-            into "${buildDir}/install/lib"
-            rename { "${applicationName}.jar" }
-        }
-    }
-    doLast {
-        File runnerDir = file("${buildDir}/install/bin")
-        runnerDir.mkdir()
-        File linRunner = file(new File(runnerDir, applicationName))
-        linRunner.text = "#!/bin/bash\njava ${applicationDefaultJvmArgs} -jar ${buildDir}/install/lib/${applicationName}.jar \$@"
-        linRunner.executable = true
-        File winRunner = file(new File(runnerDir, "${applicationName}.bat"))
-        winRunner.text = "java ${applicationDefaultJvmArgs} -jar ${buildDir}/install/lib/${applicationName}.jar %*"            
-    }
-} 
-

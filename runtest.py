@@ -8,7 +8,7 @@ import re
 
 
 def run_test(test, check_tokens=True):
-    cmd = ['./build/install/bin/svparser', test ]
+    cmd = ['./build/install/svparse/bin/svparse', test ]
     pid = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
     _, rawout = pid.communicate()
     if pid.returncode != 0:
