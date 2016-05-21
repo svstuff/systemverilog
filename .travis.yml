@@ -7,7 +7,5 @@ addons:
     packages:
       - python3
 before_script: 
-  - virtualenv -p /usr/bin/python3 --no-site-packages myenv
-  - source myenv/bin/activate
   - ./gradlew installDist
 script: ./parsertests.py
