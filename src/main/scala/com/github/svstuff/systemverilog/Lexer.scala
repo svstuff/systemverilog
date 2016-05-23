@@ -58,13 +58,14 @@ import generated._
 import java.nio.charset.CodingErrorAction
 import scala.io.Codec
 
+
 sealed class Lexer(
   tokens : BlockingQueue[SVToken],
   incdirs : Seq[String],
   printTokens : Boolean,
   skipEnqueue: Boolean,
   fileContextListener: Option[FileContextListener] = None
-) extends com.typesafe.scalalogging.slf4j.Logging {
+) extends com.typesafe.scalalogging.StrictLogging {
 
   implicit val codec = Codec("UTF-8")
   codec.onMalformedInput(CodingErrorAction.REPLACE)

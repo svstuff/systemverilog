@@ -3,7 +3,7 @@ package com.github.svstuff.systemverilog
 import collection.mutable.Map
 import collection.mutable.ListBuffer
 
-sealed class Defines extends com.typesafe.scalalogging.slf4j.Logging {
+sealed class Defines extends com.typesafe.scalalogging.StrictLogging {
 
   // map from macro name to define
   val defines = Map[String, Define]()

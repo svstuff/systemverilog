@@ -2,5 +2,10 @@ language: java
 jdk:
   - oraclejdk7
   - openjdk7
-before_script: ./gradlew installApp
+addons:
+  apt:
+    packages:
+      - python3
+before_script: 
+  - ./gradlew installDist
 script: ./parsertests.py
