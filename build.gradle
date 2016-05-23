@@ -8,11 +8,14 @@ buildscript {
 }
 apply plugin:'scala'
 apply plugin:'eclipse'
+apply plugin:'application'
 
-// inspired by the properties from the 'application' pluin, these are used in tasks
-String applicationName = "svparse"
-String applicationDefaultJvmArgs = "-Xmx6g"
-String mainClassName = 'com.github.svstuff.systemverilog.Driver'
+
+// application settings
+applicationName = "svparse"
+applicationDefaultJvmArgs = ["-Xmx6g"]
+mainClassName = 'com.github.svstuff.systemverilog.Driver'
+
 
 repositories{
     mavenCentral()
@@ -133,9 +136,9 @@ task slimJar(type: proguard.gradle.ProGuardTask) {
 }
 
 
-task installDist {
-    String libDir = "${buildDir}/install/${applicationName}/lib"
-    String binDir = "${buildDir}/install/${applicationName}/bin"
+task installSlimDist {
+    String libDir = "${buildDir}/install/${applicationName}-slim/lib"
+    String binDir = "${buildDir}/install/${applicationName}-slim/bin"
     inputs.file slimJar
     outputs.dir libDir
     outputs.dir binDir
@@ -150,9 +153,9 @@ task installDist {
         file(binDir).mkdir()
         File linRunner = file(new File(binDir, applicationName))
         File winRunner = file(new File(binDir, "${applicationName}.bat"))
-        linRunner.text = "#!/bin/bash\njava ${applicationDefaultJvmArgs} -jar ${libDir}/${applicationName}.jar \$@"
+        linRunner.text = "#!/bin/bash\njava ${applicationDefaultJvmArgs.join(' ')} -jar ${libDir}/${applicationName}.jar \$@"
         linRunner.executable = true
-        winRunner.text = "java ${applicationDefaultJvmArgs} -jar ${libDir}/${applicationName}.jar %*"
+        winRunner.text = "java ${applicationDefaultJvmArgs.join(' ')} -jar ${libDir}/${applicationName}.jar %*"
     }
 } 
 
