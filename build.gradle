@@ -41,11 +41,10 @@ task wrapper(type: Wrapper) {
 
 task antlr(type: Exec) {
     workingDir = "${projectDir}"
+    executable = './regen.py'
     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        executable = 'py'
-        args = ['./regen.py']
-    } else {
-        executable = './regen.py'
+        executable = 'python'
+        args = ['regen.py']
     }
     inputs.files files('regen.py', 'SVParser.g4')
     outputs.files files {
