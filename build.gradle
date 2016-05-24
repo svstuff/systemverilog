@@ -84,10 +84,16 @@ task slimJar(type: proguard.gradle.ProGuardTask) {
     outjars project.fatJar.archivePath.toString().replaceFirst(/-fat\.jar$/, '-slim.jar')
 
     // Keep main class
-    keepclasseswithmembers 'public class * { \
+    keepclasseswithmembers "public class ${mainClassName} { \
         public static void main(java.lang.String[]); \
-    }'
+    }"
+        
+    // General settings
+    dontobfuscate
     
+    // Workaround
+    // See: https://sourceforge.net/p/proguard/bugs/462/
+    optimizations '!code/allocation/variable'
 
     // Options for libs
 
