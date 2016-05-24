@@ -4,4 +4,10 @@
 generated/
 build/
 
+# Visual Studio Code
 .vscode/*.VC.db
+
+# Eclipse
+.classpath
+.project
+.settings/
