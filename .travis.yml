@@ -6,7 +6,9 @@ addons:
   apt:
     packages:
       - python3
+      - virtualenv
 before_script: 
+  - virtualenv -p /usr/bin/python3
   - ./gradlew installDist
   - ./gradlew installSlimDist
 script: ./parsertests.py

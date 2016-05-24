@@ -9,7 +9,7 @@ buildscript {
 apply plugin:'scala'
 apply plugin:'eclipse'
 apply plugin:'application'
-
+import org.apache.tools.ant.taskdefs.condition.Os
 
 // application settings
 applicationName = "svparse"
@@ -41,8 +41,12 @@ task wrapper(type: Wrapper) {
 
 task antlr(type: Exec) {
     workingDir = "${projectDir}"
-    executable = 'python'
-    args = ['./regen.py']
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        executable = 'py'
+        args = ['./regen.py']
+    } else {
+        executable = './regen.py'
+    }
     inputs.files files('regen.py', 'SVParser.g4')
     outputs.files files {
         file("src/main/java/com/github/svstuff/systemverilog/generated").listFiles() +
