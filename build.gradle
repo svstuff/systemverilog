@@ -71,7 +71,16 @@ task fatJar(type: Jar) {
         attributes 'Main-Class': mainClassName
     }
     baseName = project.name + '-fat'
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    from { 
+    	configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } 
+    } {
+    	exclude "META-INF/*.MF"
+    	exclude "*.properties"
+    	// text-files
+    	exclude "**/*.txt"
+    	// antlr example files
+    	exclude "org/antlr/v4/tool/**/*.stg"
+    }
     with jar
 }
 
@@ -87,13 +96,16 @@ task slimJar(type: proguard.gradle.ProGuardTask) {
     keepclasseswithmembers "public class ${mainClassName} { \
         public static void main(java.lang.String[]); \
     }"
-        
+            
     // General settings
     dontobfuscate
     
     // Workaround
     // See: https://sourceforge.net/p/proguard/bugs/462/
     optimizations '!code/allocation/variable'
+
+  	 
+
 
     // Options for libs
 
