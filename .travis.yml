@@ -6,7 +6,7 @@ addons:
   apt:
     packages:
       - python3
-      - virtualenv
+      - python-virtualenv
 before_script: 
   - virtualenv -p /usr/bin/python3
   - ./gradlew installDist
