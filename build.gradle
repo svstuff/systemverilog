@@ -1,15 +1,27 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'net.sf.proguard:proguard-gradle:5.2.1'
+    }
+}
 apply plugin:'scala'
-apply plugin:'application'
 apply plugin:'eclipse'
+apply plugin:'application'
+import org.apache.tools.ant.taskdefs.condition.Os
 
+// application settings
+applicationName = "svparse"
+applicationDefaultJvmArgs = ["-Xmx6g"]
 mainClassName = 'com.github.svstuff.systemverilog.Driver'
 
-applicationDefaultJvmArgs = ["-Xmx6g"]
 
 repositories{
     mavenCentral()
     mavenLocal()
 }
+
 
 dependencies{
     compile 'org.scala-lang:scala-library:2.11.8'
@@ -21,22 +33,19 @@ dependencies{
     compile files('lib/antlr-4.4-complete.jar')
 }
 
-compileScala {
-    scalaCompileOptions.useCompileDaemon = true
-}
-
-tasks.withType(ScalaCompile) {
-    scalaCompileOptions.useAnt = false
-}
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.13'
 }
 
+
 task antlr(type: Exec) {
     workingDir = "${projectDir}"
-    executable = 'python'
-    args = ['./regen.py']
+    executable = './regen.py'
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        executable = 'python'
+        args = ['regen.py']
+    }
     inputs.files files('regen.py', 'SVParser.g4')
     outputs.files files {
         file("src/main/java/com/github/svstuff/systemverilog/generated").listFiles() +
@@ -44,4 +53,130 @@ task antlr(type: Exec) {
     }
 }
 
+
 compileJava.dependsOn antlr
+
+
+// Configure jar task
+jar {
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
+}
+
+
+// Make fat jar~ 14MB
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
+    baseName = project.name + '-fat'
+    from { 
+    	configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } 
+    } {
+    	exclude "META-INF/*.MF"
+    	exclude "*.properties"
+    	// text-files
+    	exclude "**/*.txt"
+    	// antlr example files
+    	exclude "org/antlr/v4/tool/**/*.stg"
+    }
+    with jar
+}
+
+
+// Make slim jar by optimizing fat jar ~ 1.6MB
+task slimJar(type: proguard.gradle.ProGuardTask) {
+    dependsOn fatJar
+    injars project.fatJar.archivePath.toString()
+    libraryjars "${System.getProperty('java.home')}/lib/rt.jar"
+    outjars project.fatJar.archivePath.toString().replaceFirst(/-fat\.jar$/, '-slim.jar')
+
+    // Keep main class
+    keepclasseswithmembers "public class ${mainClassName} { \
+        public static void main(java.lang.String[]); \
+    }"
+            
+    // General settings
+    dontobfuscate
+    
+    // Workaround
+    // See: https://sourceforge.net/p/proguard/bugs/462/
+    optimizations '!code/allocation/variable'
+
+  	 
+
+
+    // Options for libs
+
+    // antlr library omits this
+    dontwarn 'org.antlr.stringtemplate.StringTemplate'
+    
+    // dynamically loaded constructors
+    keepclasseswithmembers 'class * { \
+        public <init>(org.antlr.v4.codegen.model.decl.StructDecl,java.lang.String); \
+    }'
+    keep 'class org.antlr.v4.codegen.model.decl.StructDecl'
+
+    // superflurous note about dynamically accessing 'clone', as clone is always kept
+    dontnote 'org.apache.commons.lang3.ObjectUtils'
+
+    
+    // Options for SCALA
+    // See http://proguard.sourceforge.net/#manual/examples.html#scala
+    
+    dontwarn 'scala.**'
+    
+    keepclassmembers 'class * { \
+        ** MODULE$; \
+    }'
+
+    keepclassmembernames 'class scala.concurrent.forkjoin.ForkJoinPool { \
+        long eventCount; \
+        int  workerCounts; \
+        int  runControl; \
+        scala.concurrent.forkjoin.ForkJoinPool$WaitQueueNode syncStack; \
+        scala.concurrent.forkjoin.ForkJoinPool$WaitQueueNode spareStack; \
+    }'
+    
+    keepclassmembernames 'class scala.concurrent.forkjoin.ForkJoinWorkerThread { \
+        int base; \
+        int sp; \
+        int runState; \
+    }'
+    
+    keepclassmembernames 'class scala.concurrent.forkjoin.ForkJoinTask { \
+        int status; \
+    }'
+    
+    keepclassmembernames 'class scala.concurrent.forkjoin.LinkedTransferQueue { \
+        scala.concurrent.forkjoin.LinkedTransferQueue$PaddedAtomicReference head; \
+        scala.concurrent.forkjoin.LinkedTransferQueue$PaddedAtomicReference tail; \
+        scala.concurrent.forkjoin.LinkedTransferQueue$PaddedAtomicReference cleanMe; \
+    }'
+}
+
+
+task installSlimDist {
+    String libDir = "${buildDir}/install/${applicationName}-slim/lib"
+    String binDir = "${buildDir}/install/${applicationName}-slim/bin"
+    inputs.file slimJar
+    outputs.dir libDir
+    outputs.dir binDir
+    doLast {
+        copy {
+            from slimJar
+            into libDir
+            rename { "${applicationName}.jar" }
+        }
+    }
+    doLast {
+        file(binDir).mkdir()
+        File linRunner = file(new File(binDir, applicationName))
+        File winRunner = file(new File(binDir, "${applicationName}.bat"))
+        linRunner.text = "#!/bin/bash\njava ${applicationDefaultJvmArgs.join(' ')} -jar ${libDir}/${applicationName}.jar \$@"
+        linRunner.executable = true
+        winRunner.text = "java ${applicationDefaultJvmArgs.join(' ')} -jar ${libDir}/${applicationName}.jar %*"
+    }
+} 
+
