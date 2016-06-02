@@ -1,15 +1,22 @@
 language: java
+sudo: required
 jdk:
   - oraclejdk7
   - openjdk7
-addons:
-  apt:
-    packages:
-      - python3
-      - python-virtualenv
-before_script: 
-  - virtualenv -p /usr/bin/python3 my-env
+before_script:
+  - sudo add-apt-repository -y ppa:fkrull/deadsnakes 
+  - sudo apt-get -q update
+  - sudo apt-get install python3.5 python-virtualenv 
+  - virtualenv -p /usr/bin/python3.5 my-env
   - source my-env/bin/activate
   - ./gradlew installDist
   - ./gradlew installSlimDist
-script: ./parsertests.py
+script: 
+  - cd tests
+  - RUNNER=../build/install/svparse-slim/bin/svparse
+  - ./runtests.py $RUNNER parsertests/* --verbose
+  - ./runtests.py $RUNNER lexertests/* --verbose
+  - ./runtests.py $RUNNER regressiontests/* --verbose
+  - ./runtests.py $RUNNER failsonwindows/* --verbose
+  - ./runtests.py $RUNNER negative_tests/* --should fail --verbose
+  - ./runtests.py $RUNNER knownfailures/* --should fail --verbose
